@@ -37,12 +37,12 @@ export default function About() {
     <div className="mx-auto max-w-[1400px] px-5 pt-36 sm:px-8 lg:pt-44">
       {/* Hero */}
       <div className="max-w-3xl">
-        <Eyebrow className="mb-5">About us</Eyebrow>
-        <h1 className="text-[clamp(2.6rem,6.4vw,5rem)] font-extrabold">
+        <Eyebrow className="mb-4">About us</Eyebrow>
+        <h1 className="text-[clamp(2.4rem,5.5vw,4.2rem)] font-extrabold text-cream tracking-tight">
           For our customers to forget about work{' '}
-          <em className="font-serif italic font-normal text-gradient">and enjoy life.</em>
+          <span className="text-blue">and enjoy life.</span>
         </h1>
-        <p className="mt-7 text-[16.5px] leading-relaxed text-muted">
+        <p className="mt-5 text-[16px] leading-relaxed text-muted">
           That has been the point since 2013. Dry Tickets is the box office behind desi live
           entertainment in Australia and New Zealand — Bollywood playback legends, Punjabi headliners,
           qawwali nights, Garba floors and stand-up tours. We handle the ticket so you can enjoy
@@ -51,7 +51,7 @@ export default function About() {
       </div>
 
       {/* Poster wall */}
-      <div className="no-scrollbar edge-fade mt-16 flex gap-4 overflow-hidden">
+      <div className="no-scrollbar edge-fade mt-14 flex gap-4 overflow-hidden">
         {events.slice(0, 12).map((e) => (
           <img
             key={e.slug}
@@ -59,25 +59,25 @@ export default function About() {
             alt=""
             aria-hidden
             loading="lazy"
-            className="aspect-[460/651] w-[128px] shrink-0 rounded-xl object-cover opacity-70 sm:w-[152px]"
+            className="aspect-[460/651] w-[128px] shrink-0 rounded-xl object-cover border border-line sm:w-[152px]"
           />
         ))}
       </div>
 
       {/* Timeline */}
-      <section className="pt-32">
+      <section className="pt-28">
         <Reveal>
           <SectionHead eyebrow="Our story" title="Thirteen years of" accent="full rooms" />
         </Reveal>
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {timeline.map((t, i) => (
-            <Reveal key={t.year} delay={0.07 * i}>
-              <div className="h-full rounded-3xl bg-surface p-7 hairline">
-                <span className="font-serif text-[2.4rem] italic leading-none text-gradient">
+            <Reveal key={t.year} delay={0.05 * i}>
+              <div className="h-full rounded-2xl bg-surface-2 p-6 border border-line">
+                <span className="text-[2.2rem] font-black leading-none text-blue">
                   {t.year}
                 </span>
-                <h3 className="mt-5 text-[16.5px] font-bold text-cream">{t.title}</h3>
-                <p className="mt-2.5 text-[14px] leading-relaxed text-muted">{t.body}</p>
+                <h3 className="mt-4 text-base font-bold text-cream">{t.title}</h3>
+                <p className="mt-2 text-xs leading-relaxed text-muted">{t.body}</p>
               </div>
             </Reveal>
           ))}
@@ -95,7 +95,7 @@ export default function About() {
               <details className="group rounded-2xl bg-surface p-6 hairline transition-colors hover:bg-surface-2">
                 <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-[15.5px] font-bold text-cream marker:hidden">
                   {f.q}
-                  <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-ink text-saffron transition-transform duration-300 group-open:rotate-45">
+                  <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-surface-2 text-blue transition-transform duration-300 group-open:rotate-45">
                     +
                   </span>
                 </summary>
@@ -112,7 +112,7 @@ export default function About() {
           <div className="relative overflow-hidden rounded-4xl bg-surface p-8 hairline sm:p-14 lg:p-20">
             <div
               aria-hidden
-              className="pointer-events-none absolute -right-20 -top-20 h-96 w-96 rounded-full bg-saffron/14 blur-[120px]"
+              className="pointer-events-none absolute -right-20 -top-20 h-96 w-96 rounded-full bg-blue/10 blur-[120px]"
             />
             <div className="relative grid gap-12 lg:grid-cols-2 lg:items-center">
               <div>
@@ -145,11 +145,11 @@ export default function About() {
                   { label: 'ABN', value: '15 162 645 856' },
                   { label: 'Trading as', value: 'Dryfa Group Pty Ltd' },
                 ].map((c) => (
-                  <div key={c.label} className="rounded-2xl bg-ink/55 p-6 hairline">
-                    <p className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-faint">
+                  <div key={c.label} className="rounded-2xl bg-surface-2 p-6 border border-line">
+                    <p className="text-[11px] font-bold uppercase tracking-wider text-muted">
                       {c.label}
                     </p>
-                    <p className="mt-2 text-[14.5px] font-bold leading-snug text-cream">{c.value}</p>
+                    <p className="mt-1.5 text-sm font-bold text-cream">{c.value}</p>
                   </div>
                 ))}
 
@@ -165,7 +165,7 @@ export default function About() {
                       target="_blank"
                       rel="noreferrer"
                       aria-label={label}
-                      className="grid h-11 w-11 place-items-center rounded-full hairline text-muted transition-all hover:border-saffron/40 hover:text-saffron"
+                      className="grid h-11 w-11 place-items-center rounded-full hairline text-muted transition-all hover:border-blue/40 hover:text-blue"
                     >
                       <Icon className="h-[18px] w-[18px]" />
                     </a>

@@ -27,7 +27,7 @@ export function Marquee() {
               <span className="whitespace-nowrap text-[15px] font-bold tracking-[-0.02em] text-cream/45 transition-colors hover:text-cream">
                 {n}
               </span>
-              <span className="h-1 w-1 shrink-0 rounded-full bg-saffron/60" />
+              <span className="h-1 w-1 shrink-0 rounded-full bg-blue/50" />
             </span>
           ))}
         </div>

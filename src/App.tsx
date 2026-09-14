@@ -6,6 +6,7 @@ import Home from './pages/Home'
 import Events from './pages/Events'
 import EventDetail from './pages/EventDetail'
 import Artists from './pages/Artists'
+import Venues from './pages/Venues'
 import Sell from './pages/Sell'
 import About from './pages/About'
 import NotFound from './pages/NotFound'
@@ -29,6 +30,7 @@ export default function App() {
           <Route path="/events" element={<Events />} />
           <Route path="/event/:slug" element={<EventDetail />} />
           <Route path="/artists" element={<Artists />} />
+          <Route path="/venues" element={<Venues />} />
           <Route path="/sell" element={<Sell />} />
           <Route path="/about" element={<About />} />
           <Route path="*" element={<NotFound />} />

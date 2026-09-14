@@ -1,163 +1,297 @@
 import { Link } from 'react-router-dom'
-import { allArtists, featuredEvents, liveEvents, presaleEvents } from '../data/events'
-import { fmtDateShort, monthKey } from '../lib/format'
+import {
+  AUSTRALIAN_CITIES,
+  featuredEvents,
+  liveEvents,
+} from '../data/events'
+import { monthKey } from '../lib/format'
 import { Hero } from '../components/Hero'
-import { Marquee } from '../components/Marquee'
-import { Rail } from '../components/Rail'
 import { EventRow, PosterCard } from '../components/PosterCard'
-import { Badge, Button, Eyebrow, Reveal, SectionHead } from '../components/Primitives'
-import { Arrow, Bolt, Pin, Shield, Ticket } from '../components/Icons'
+import { Button, Reveal } from '../components/Primitives'
+import { Arrow, Bolt, Check, Pin, Shield, Ticket } from '../components/Icons'
 
-const stats = [
-  { value: '800+', label: 'Shows produced' },
-  { value: '600+', label: 'Artists hosted' },
-  { value: '200k+', label: 'Ticket holders' },
-  { value: '320+', label: 'Venues covered' },
+const CATEGORY_CARDS = [
+  {
+    id: 'Concert',
+    name: 'Concerts & Music',
+    count: '2,340 events',
+    icon: '🎵',
+    bg: 'bg-[#EFF6FF]',
+    border: 'border-[#DBEAFE]',
+    text: 'text-[#1D4ED8]',
+  },
+  {
+    id: 'Comedy',
+    name: 'Comedy',
+    count: '840 events',
+    icon: '🎙️',
+    bg: 'bg-[#FFF7ED]',
+    border: 'border-[#FFEDD5]',
+    text: 'text-[#C2410C]',
+  },
+  {
+    id: 'Festival',
+    name: 'Festivals',
+    count: '420 events',
+    icon: '🎪',
+    bg: 'bg-[#FAF5FF]',
+    border: 'border-[#F3E8FF]',
+    text: 'text-[#7E22CE]',
+  },
+  {
+    id: 'Theatre',
+    name: 'Theatre',
+    count: '610 events',
+    icon: '🎭',
+    bg: 'bg-[#FDF2F8]',
+    border: 'border-[#FCE7F3]',
+    text: 'text-[#BE185D]',
+  },
+  {
+    id: 'Sports',
+    name: 'Sports',
+    count: '590 events',
+    icon: '🏆',
+    bg: 'bg-[#F0FDF4]',
+    border: 'border-[#DCFCE7]',
+    text: 'text-[#15803D]',
+  },
+  {
+    id: 'Arts',
+    name: 'Arts & Culture',
+    count: '730 events',
+    icon: '🎨',
+    bg: 'bg-[#FEFCE8]',
+    border: 'border-[#FEF9C3]',
+    text: 'text-[#A16207]',
+  },
 ]
 
-const promises = [
+const guarantees = [
   {
     Icon: Shield,
-    title: 'Verified tickets, always',
-    body: 'Every ticket is issued by us and barcode-scanned at the door. No resale markups, no fakes, no surprises.',
+    title: '100% Official Verified Tickets',
+    body: 'Direct primary ticketing seller. Every ticket is officially authorized by promoters and barcode-verified at the venue door.',
   },
   {
     Icon: Bolt,
-    title: 'In your inbox instantly',
-    body: 'E-tickets land the moment you pay. Show the barcode on your phone — or we will print thermal tickets for you.',
+    title: 'Instant Barcode Delivery',
+    body: 'Receive your mobile e-ticket barcode immediately via email and SMS. Add to Apple Wallet or show directly on your phone.',
   },
   {
     Icon: Ticket,
-    title: 'Presale before anyone else',
-    body: 'Members get first access to tour announcements and discount codes ahead of general on-sale.',
+    title: 'No Scalping or Resale Markups',
+    body: 'Face-value transparent AUD pricing with clearly disclosed booking fees. No secondary scalper markups ever.',
+  },
+  {
+    Icon: Check,
+    title: 'Dedicated Australian Support',
+    body: 'Real customer support based in Sydney. Available by phone (0452 337 387) and email Monday through Friday.',
   },
 ]
 
 export default function Home() {
-  const featured = featuredEvents
-  const onSale = liveEvents.slice(0, 12)
-  const thisMonth = liveEvents.slice(0, 8)
-
-  // Real cities only, busiest first — tour-wide entries have no city to browse.
-  const cityCards = Object.entries(
-    liveEvents.reduce<Record<string, number>>((acc, e) => {
-      if (/tour|wide/i.test(e.metro)) return acc
-      acc[e.metro] = (acc[e.metro] ?? 0) + 1
-      return acc
-    }, {}),
-  )
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 6)
-
-  // Group the next chunk of events by month for the calendar-style listing
-  const grouped = liveEvents.slice(0, 14).reduce<Record<string, typeof liveEvents>>((acc, e) => {
+  // Group events by month for the calendar view
+  const grouped = liveEvents.slice(0, 8).reduce<Record<string, typeof liveEvents>>((acc, e) => {
     const k = monthKey(e.start)
     ;(acc[k] ??= []).push(e)
     return acc
   }, {})
 
   return (
-    <>
-      <Hero featured={featured} />
-      <Marquee />
+    <div className="bg-white">
+      {/* 1. Large Photographic Hero Section with Search Container */}
+      <Hero featured={featuredEvents} />
 
-      {/* ------------------------------------------------------ Now on sale */}
-      <section className="mx-auto max-w-[1400px] px-5 pt-24 sm:px-8 lg:pt-32">
+      {/* 2. Featured Events Section */}
+      <section className="mx-auto max-w-[1400px] px-5 pt-16 sm:px-8 lg:pt-20">
         <Reveal>
-          <SectionHead
-            eyebrow="Now on sale"
-            title="Tickets moving"
-            accent="fast"
-            blurb="The shows selling hardest across Australia and New Zealand right now."
-            action={
-              <Button to="/events" variant="outline">
-                All events
-                <Arrow className="h-4 w-4" />
-              </Button>
-            }
-          />
+          <div className="mb-8 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+            <div>
+              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-cream">
+                Featured events
+              </h2>
+              <p className="mt-1.5 text-sm sm:text-base text-muted">
+                Don't miss what's happening near you.
+              </p>
+            </div>
+            <Link
+              to="/events"
+              className="inline-flex items-center gap-1.5 text-sm font-bold text-blue hover:text-blue-dark transition-colors"
+            >
+              <span>View all events</span>
+              <Arrow className="h-4 w-4" />
+            </Link>
+          </div>
         </Reveal>
-        <Reveal delay={0.1}>
-          <Rail events={onSale} />
+
+        {/* 4-Column Desktop Grid */}
+        <Reveal delay={0.06}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {featuredEvents.slice(0, 4).map((e, idx) => (
+              <PosterCard key={e.slug} event={e} index={idx} />
+            ))}
+          </div>
         </Reveal>
       </section>
 
-      {/* --------------------------------------------------- Browse by city */}
-      <section className="mx-auto max-w-[1400px] px-5 pt-28 sm:px-8">
+      {/* 3. Explore by Category Section */}
+      <section className="mx-auto max-w-[1400px] px-5 pt-20 sm:px-8 lg:pt-24">
         <Reveal>
-          <SectionHead
-            eyebrow="Wherever you are"
-            title="Pick your"
-            accent="city"
-            blurb="From Sydney's Liberty Hall to Christchurch — find what's on near you."
-          />
+          <div className="mb-8">
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-cream">
+              Explore by category
+            </h2>
+            <p className="mt-1.5 text-sm sm:text-base text-muted">
+              Whatever excites you, there's an event for it.
+            </p>
+          </div>
         </Reveal>
 
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {cityCards.map(([m, count], i) => {
-            const next = liveEvents.find((e) => e.metro === m)
-            return (
-              <Reveal key={m} delay={0.04 * i}>
-                <Link
-                  to={`/events?city=${encodeURIComponent(m)}`}
-                  className="group relative flex items-center gap-4 overflow-hidden rounded-2xl bg-surface p-4 hairline transition-all duration-300 hover:bg-surface-2"
-                >
-                  {next && (
-                    <img
-                      src={next.image}
-                      alt=""
-                      loading="lazy"
-                      aria-hidden
-                      className="h-16 w-12 shrink-0 rounded-lg object-cover opacity-80 transition-all duration-500 group-hover:opacity-100"
-                    />
-                  )}
-                  <div className="min-w-0 flex-1">
-                    <h3 className="flex items-center gap-2 text-[15px] font-bold text-cream">
-                      <Pin className="h-4 w-4 text-saffron" />
-                      {m}
+        {/* Horizontal Category Cards with Soft Pastel Backgrounds */}
+        <Reveal delay={0.06}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+            {CATEGORY_CARDS.map((cat) => (
+              <Link
+                key={cat.id}
+                to={`/events?category=${encodeURIComponent(cat.id)}`}
+                className={`group flex items-center justify-between p-5 rounded-2xl border ${cat.bg} ${cat.border} transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm cursor-pointer`}
+              >
+                <div className="flex items-center gap-4">
+                  <span className="grid h-12 w-12 place-items-center rounded-xl bg-white shadow-2xs text-2xl shrink-0">
+                    {cat.icon}
+                  </span>
+                  <div>
+                    <h3 className="text-base font-extrabold text-cream group-hover:text-blue transition-colors">
+                      {cat.name}
                     </h3>
-                    <p className="mt-1 truncate text-[12.5px] text-muted">
-                      {count} {count === 1 ? 'event' : 'events'}
-                      {next && ` · next ${fmtDateShort(next.start)}`}
+                    <p className={`text-xs font-semibold mt-0.5 ${cat.text}`}>
+                      {cat.count}
                     </p>
                   </div>
-                  <Arrow className="h-4 w-4 shrink-0 text-faint transition-all duration-300 group-hover:translate-x-1 group-hover:text-saffron" />
-                </Link>
-              </Reveal>
-            )
-          })}
-        </div>
+                </div>
+
+                <div className="grid h-8 w-8 place-items-center rounded-full bg-white/80 text-muted group-hover:bg-white group-hover:text-blue transition-all">
+                  <Arrow className="h-4 w-4" />
+                </div>
+              </Link>
+            ))}
+          </div>
+        </Reveal>
       </section>
 
-      {/* ------------------------------------------------- Events by date */}
-      <section className="mx-auto max-w-[1400px] px-5 pt-28 sm:px-8">
+      {/* 4. Popular Events Section */}
+      <section className="mx-auto max-w-[1400px] px-5 pt-20 sm:px-8 lg:pt-24">
         <Reveal>
-          <SectionHead
-            eyebrow="The calendar"
-            title="What's on,"
-            accent="week by week"
-            action={
-              <Button to="/events" variant="outline">
-                Full calendar
-                <Arrow className="h-4 w-4" />
-              </Button>
-            }
-          />
+          <div className="mb-8 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+            <div>
+              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-cream">
+                Popular events
+              </h2>
+              <p className="mt-1.5 text-sm sm:text-base text-muted">
+                The events everyone's talking about.
+              </p>
+            </div>
+            <Link
+              to="/events"
+              className="inline-flex items-center gap-1.5 text-sm font-bold text-blue hover:text-blue-dark transition-colors"
+            >
+              <span>View all events</span>
+              <Arrow className="h-4 w-4" />
+            </Link>
+          </div>
         </Reveal>
 
-        <div className="space-y-12">
+        {/* 4-Column Desktop Grid */}
+        <Reveal delay={0.06}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {liveEvents.slice(2, 6).map((e, idx) => (
+              <PosterCard key={e.slug} event={e} index={idx} />
+            ))}
+          </div>
+        </Reveal>
+      </section>
+
+      {/* 5. City Discovery Section */}
+      <section className="mx-auto max-w-[1400px] px-5 pt-20 sm:px-8 lg:pt-24">
+        <Reveal>
+          <div className="mb-8">
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-cream">
+              Explore events by city
+            </h2>
+            <p className="mt-1.5 text-sm sm:text-base text-muted">
+              Discover top live entertainment across major Australian cultural hubs.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            {AUSTRALIAN_CITIES.map((c) => {
+              const count = liveEvents.filter((e) => e.metro === c.name).length
+              return (
+                <Link
+                  key={c.name}
+                  to={`/events?city=${encodeURIComponent(c.name)}`}
+                  className="group relative flex flex-col justify-between overflow-hidden rounded-2xl bg-white border border-line p-4 sm:p-5 shadow-2xs transition-all duration-200 hover:-translate-y-1 hover:border-slate-300 hover:shadow-md cursor-pointer"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="grid h-8 w-8 place-items-center rounded-xl bg-blue-light text-blue font-bold text-xs">
+                      <Pin className="h-4 w-4" />
+                    </span>
+                    <span className="text-[11px] font-bold text-blue bg-blue-light px-2 py-0.5 rounded-md">
+                      {c.state}
+                    </span>
+                  </div>
+
+                  <div className="mt-6">
+                    <h3 className="text-base sm:text-lg font-extrabold text-cream group-hover:text-blue transition-colors">
+                      {c.name}
+                    </h3>
+                    <p className="mt-1 text-xs text-muted truncate">
+                      {count > 0 ? `${count} upcoming ${count === 1 ? 'event' : 'events'}` : 'Browse city shows'}
+                    </p>
+                  </div>
+                </Link>
+              )
+            })}
+          </div>
+        </Reveal>
+      </section>
+
+      {/* 6. What's On This Weekend / Upcoming Calendar */}
+      <section className="mx-auto max-w-[1400px] px-5 pt-20 sm:px-8 lg:pt-24">
+        <Reveal>
+          <div className="mb-8 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+            <div>
+              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-cream">
+                What's On This Weekend
+              </h2>
+              <p className="mt-1.5 text-sm sm:text-base text-muted">
+                Plan your upcoming evenings across major Australian stages.
+              </p>
+            </div>
+            <Link
+              to="/events"
+              className="inline-flex items-center gap-1.5 text-sm font-bold text-blue hover:text-blue-dark transition-colors"
+            >
+              <span>Full event schedule</span>
+              <Arrow className="h-4 w-4" />
+            </Link>
+          </div>
+        </Reveal>
+
+        <div className="space-y-6">
           {Object.entries(grouped).map(([month, items], gi) => (
-            <Reveal key={month} delay={0.05 * gi}>
-              <div className="mb-4 flex items-baseline gap-4">
-                <h3 className="text-[13px] font-bold uppercase tracking-[0.22em] text-saffron">
+            <Reveal key={month} delay={0.04 * gi}>
+              <div className="mb-3 flex items-baseline gap-3">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-blue">
                   {month}
                 </h3>
                 <span className="h-px flex-1 bg-line" />
-                <span className="text-[12px] font-semibold text-faint">
+                <span className="text-xs font-medium text-muted">
                   {items.length} {items.length === 1 ? 'show' : 'shows'}
                 </span>
               </div>
-              <div className="divide-y divide-line rounded-2xl bg-surface/50 p-1.5 hairline">
+              <div className="divide-y divide-line rounded-2xl bg-white border border-line p-2 shadow-2xs">
                 {items.map((e) => (
                   <EventRow key={e.slug} event={e} />
                 ))}
@@ -167,198 +301,79 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ----------------------------------------------------------- Presale */}
-      {presaleEvents.length > 0 && (
-        <section className="relative mt-32 overflow-hidden border-y border-line bg-ink-2 py-24">
-          <div
-            aria-hidden
-            className="pointer-events-none absolute -right-20 top-0 h-96 w-96 rounded-full bg-violet/15 blur-[120px]"
-          />
-          <div
-            aria-hidden
-            className="pointer-events-none absolute -left-20 bottom-0 h-96 w-96 rounded-full bg-gold/10 blur-[120px]"
-          />
+      {/* 7. Why Book With DryTickets (Trust Guarantees) */}
+      <section className="mx-auto max-w-[1400px] px-5 pt-20 sm:px-8">
+        <div className="rounded-3xl bg-surface-2 p-8 sm:p-12 border border-line">
+          <Reveal>
+            <div className="text-center max-w-2xl mx-auto mb-10">
+              <span className="inline-block rounded-full bg-blue-light px-3 py-1 text-xs font-bold text-blue border border-blue/20 mb-3">
+                Guaranteed & Verified
+              </span>
+              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-cream">
+                Why book with <span className="text-blue">DryTickets</span>?
+              </h2>
+              <p className="mt-2 text-sm text-muted">
+                Australia's clean, simple and trusted marketplace for official event tickets.
+              </p>
+            </div>
+          </Reveal>
 
-          <div className="relative mx-auto max-w-[1400px] px-5 sm:px-8">
-            <div className="grid gap-14 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
-              <Reveal>
-                <Eyebrow className="mb-5">Exclusive presale</Eyebrow>
-                <h2 className="text-[clamp(2rem,4.4vw,3.4rem)] font-extrabold">
-                  Tours announced.{' '}
-                  <em className="font-serif italic font-normal text-gradient">
-                    Tickets not yet public.
-                  </em>
-                </h2>
-                <p className="mt-5 max-w-md text-[15px] leading-relaxed text-muted">
-                  Register your interest and we'll send you a presale code before general on-sale —
-                  plus first pick of front-row, fanpit and meet-and-greet packages.
-                </p>
-
-                <form onSubmit={(e) => e.preventDefault()} className="mt-8 flex max-w-md flex-col gap-3 sm:flex-row">
-                  <input
-                    type="email"
-                    required
-                    placeholder="your@email.com"
-                    aria-label="Email for presale access"
-                    className="h-12 flex-1 rounded-full bg-surface px-5 text-sm text-cream placeholder:text-faint hairline focus:outline-none focus:ring-1 focus:ring-saffron/60"
-                  />
-                  <Button type="submit">Join the list</Button>
-                </form>
-
-                <p className="mt-4 text-[12px] text-faint">
-                  Joining 200,000+ members. Unsubscribe anytime.
-                </p>
-              </Reveal>
-
-              <Reveal delay={0.15}>
-                <div className="grid gap-4 sm:grid-cols-2">
-                  {presaleEvents.map((e) => (
-                    <Link
-                      key={e.slug}
-                      to={`/event/${e.slug}`}
-                      className="group relative overflow-hidden rounded-2xl hairline"
-                    >
-                      <img
-                        src={e.image}
-                        alt={`${e.title} poster`}
-                        loading="lazy"
-                        className="aspect-[460/651] w-full object-cover transition-transform duration-[900ms] group-hover:scale-105"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/35 to-transparent" />
-                      <div className="absolute left-3.5 top-3.5">
-                        <Badge tone="gold">Presale</Badge>
-                      </div>
-                      <div className="absolute inset-x-0 bottom-0 p-4">
-                        <h3 className="line-clamp-2 text-[14px] font-bold leading-snug text-cream">
-                          {e.title}
-                        </h3>
-                        <p className="mt-1.5 text-[11.5px] font-semibold uppercase tracking-[0.12em] text-saffron">
-                          Dates to be announced
-                        </p>
-                      </div>
-                    </Link>
-                  ))}
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            {guarantees.map((p, i) => (
+              <Reveal key={p.title} delay={0.04 * i}>
+                <div className="h-full rounded-2xl bg-white p-6 border border-line shadow-2xs transition-all hover:shadow-sm">
+                  <span className="grid h-10 w-10 place-items-center rounded-xl bg-blue-light text-blue">
+                    <p.Icon className="h-5 w-5" />
+                  </span>
+                  <h3 className="mt-4 text-[15px] font-bold text-cream leading-snug">{p.title}</h3>
+                  <p className="mt-2 text-xs leading-relaxed text-muted">{p.body}</p>
                 </div>
               </Reveal>
-            </div>
+            ))}
           </div>
-        </section>
-      )}
-
-      {/* ----------------------------------------------------------- Artists */}
-      <section className="mx-auto max-w-[1400px] px-5 pt-28 sm:px-8">
-        <Reveal>
-          <SectionHead
-            eyebrow="The roster"
-            title="Artists on"
-            accent="tour"
-            blurb="Six hundred acts have played a Dry Tickets stage. These are the ones on the road now."
-            action={
-              <Button to="/artists" variant="outline">
-                All artists
-                <Arrow className="h-4 w-4" />
-              </Button>
-            }
-          />
-        </Reveal>
-
-        <Reveal delay={0.1}>
-          <div className="no-scrollbar -mx-5 flex gap-4 overflow-x-auto px-5 pb-2 sm:-mx-8 sm:px-8">
-            {allArtists.map((a) => {
-              const count = liveEvents.filter((e) =>
-                e.artists.some((x) => x.name === a.name),
-              ).length
-              return (
-                <Link
-                  key={a.name}
-                  to={`/events?q=${encodeURIComponent(a.name)}`}
-                  className="group w-[168px] shrink-0"
-                >
-                  <div className="relative overflow-hidden rounded-2xl hairline">
-                    <img
-                      src={a.image}
-                      alt={a.name}
-                      loading="lazy"
-                      className="aspect-[4/5] w-full object-cover transition-transform duration-[900ms] group-hover:scale-105"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-ink via-transparent to-transparent" />
-                    <div className="absolute inset-x-0 bottom-0 p-3">
-                      <h3 className="truncate text-[13.5px] font-bold text-cream">{a.name}</h3>
-                      {count > 0 && (
-                        <p className="text-[11px] font-semibold text-saffron">
-                          {count} {count === 1 ? 'date' : 'dates'}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                </Link>
-              )
-            })}
-          </div>
-        </Reveal>
-      </section>
-
-      {/* ----------------------------------------------------------- Promise */}
-      <section className="mx-auto max-w-[1400px] px-5 pt-32 sm:px-8">
-        <div className="grid gap-6 md:grid-cols-3">
-          {promises.map((p, i) => (
-            <Reveal key={p.title} delay={0.08 * i}>
-              <div className="h-full rounded-3xl bg-surface p-7 hairline transition-colors duration-300 hover:bg-surface-2">
-                <span className="grid h-11 w-11 place-items-center rounded-xl bg-saffron/12 text-saffron">
-                  <p.Icon className="h-5 w-5" />
-                </span>
-                <h3 className="mt-5 text-[17px] font-bold text-cream">{p.title}</h3>
-                <p className="mt-2.5 text-[14px] leading-relaxed text-muted">{p.body}</p>
-              </div>
-            </Reveal>
-          ))}
         </div>
       </section>
 
-      {/* -------------------------------------------------------- Organisers */}
-      <section className="mx-auto mt-32 max-w-[1400px] px-5 sm:px-8">
+      {/* 8. Box Office Solution for Organisers */}
+      <section className="mx-auto mt-20 max-w-[1400px] px-5 sm:px-8">
         <Reveal>
-          <div className="relative overflow-hidden rounded-4xl bg-surface p-8 hairline sm:p-14 lg:p-20">
-            <div
-              aria-hidden
-              className="pointer-events-none absolute -right-24 -top-24 h-[28rem] w-[28rem] rounded-full bg-ember/18 blur-[120px]"
-            />
-            <div
-              aria-hidden
-              className="pointer-events-none absolute -bottom-24 -left-24 h-[24rem] w-[24rem] rounded-full bg-saffron/14 blur-[120px]"
-            />
-
-            <div className="relative grid gap-12 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
+          <div className="relative overflow-hidden rounded-3xl bg-white p-8 sm:p-12 lg:p-14 border border-line shadow-2xs">
+            <div className="grid gap-10 lg:grid-cols-[1.15fr_0.85fr] lg:items-center">
               <div>
-                <Eyebrow className="mb-5">For organisers</Eyebrow>
-                <h2 className="text-[clamp(2rem,4.4vw,3.4rem)] font-extrabold">
+                <span className="inline-block rounded-full bg-blue-light px-3 py-1 text-xs font-bold text-blue border border-blue/20 mb-3">
+                  Event Organisers
+                </span>
+                <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-cream">
                   Selling a show?{' '}
-                  <em className="font-serif italic font-normal text-gradient">We run the whole box office.</em>
+                  <span className="text-blue">We manage your box office.</span>
                 </h2>
-                <p className="mt-5 max-w-lg text-[15px] leading-relaxed text-muted">
-                  Ticketing, seat maps, barcode scanning, thermal printing, poster design and paid
-                  social — one team, one invoice. We've done it for 350 organisers and 800 events over
-                  the last decade.
+                <p className="mt-3 max-w-lg text-sm leading-relaxed text-muted">
+                  Full Australian ticketing portals, reserved seating maps, mobile gate scanning apps, thermal hard-copy tickets, and audience promotion — all in one simple platform.
                 </p>
 
-                <div className="mt-9 flex flex-wrap gap-4">
-                  <Button to="/sell" size="lg">
-                    Start selling
+                <div className="mt-7 flex flex-wrap gap-3">
+                  <Button to="/sell" size="md" variant="primary">
+                    List Your Event
                     <Arrow className="h-4 w-4" />
                   </Button>
-                  <Button href="tel:0452337387" variant="outline" size="lg">
+                  <Button href="tel:0452337387" variant="outline" size="md">
                     Call 0452 337 387
                   </Button>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                {stats.map((s) => (
-                  <div key={s.label} className="rounded-2xl bg-ink/55 p-6 hairline">
-                    <p className="text-[clamp(1.8rem,3.4vw,2.6rem)] font-extrabold tracking-[-0.04em] text-gradient">
+              <div className="grid grid-cols-2 gap-3.5">
+                {[
+                  { value: '800+', label: 'Shows ticketed' },
+                  { value: '600+', label: 'Artists hosted' },
+                  { value: '200k+', label: 'Happy ticket holders' },
+                  { value: '320+', label: 'Venues across AU & NZ' },
+                ].map((s) => (
+                  <div key={s.label} className="rounded-2xl bg-surface-2 p-5 border border-line">
+                    <p className="text-2xl sm:text-3xl font-black tracking-tight text-cream">
                       {s.value}
                     </p>
-                    <p className="mt-1.5 text-[12.5px] font-medium text-muted">{s.label}</p>
+                    <p className="mt-1 text-xs font-semibold text-muted">{s.label}</p>
                   </div>
                 ))}
               </div>
@@ -367,26 +382,23 @@ export default function Home() {
         </Reveal>
       </section>
 
-      {/* ------------------------------------------------------- Closing grid */}
-      <section className="mx-auto max-w-[1400px] px-5 pt-32 sm:px-8">
+      {/* 9. Clean Closing Call to Action */}
+      <section className="mx-auto max-w-[1400px] px-5 pt-20 pb-20 sm:px-8 text-center">
         <Reveal>
-          <SectionHead eyebrow="Don't miss out" title="More to" accent="book" />
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-cream">
+            Ready for your next live experience?
+          </h2>
+          <p className="mt-2 text-sm sm:text-base text-muted max-w-md mx-auto">
+            Book official tickets across Australia in minutes with instant mobile barcode delivery.
+          </p>
+          <div className="mt-6 flex justify-center">
+            <Button to="/events" size="lg" variant="primary">
+              Explore All {liveEvents.length} Events
+              <Arrow className="h-4 w-4" />
+            </Button>
+          </div>
         </Reveal>
-        <div className="grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-4">
-          {thisMonth.slice(0, 8).map((e, i) => (
-            <Reveal key={e.slug} delay={0.05 * (i % 4)}>
-              <PosterCard event={e} index={i} />
-            </Reveal>
-          ))}
-        </div>
-
-        <div className="mt-14 flex justify-center">
-          <Button to="/events" size="lg" variant="outline">
-            See all {liveEvents.length} events
-            <Arrow className="h-4 w-4" />
-          </Button>
-        </div>
       </section>
-    </>
+    </div>
   )
 }

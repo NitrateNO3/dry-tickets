@@ -9,7 +9,7 @@ import { cx } from '../lib/format'
 export function Reveal({
   children,
   delay = 0,
-  y = 22,
+  y = 20,
   className,
 }: {
   children: ReactNode
@@ -18,7 +18,7 @@ export function Reveal({
   className?: string
 }) {
   const ref = useRef<HTMLDivElement>(null)
-  const inView = useInView(ref, { once: true, margin: '-12% 0px -8% 0px' })
+  const inView = useInView(ref, { once: true, margin: '-10% 0px -5% 0px' })
 
   return (
     <motion.div
@@ -26,7 +26,7 @@ export function Reveal({
       className={className}
       initial={{ opacity: 0, y }}
       animate={inView ? { opacity: 1, y: 0 } : undefined}
-      transition={{ duration: 0.7, delay, ease: [0.22, 1, 0.36, 1] }}
+      transition={{ duration: 0.5, delay, ease: [0.22, 1, 0.36, 1] }}
     >
       {children}
     </motion.div>
@@ -40,7 +40,7 @@ type ButtonProps = {
   to?: string
   href?: string
   onClick?: () => void
-  variant?: 'primary' | 'ghost' | 'outline'
+  variant?: 'primary' | 'ghost' | 'outline' | 'secondary'
   size?: 'sm' | 'md' | 'lg'
   className?: string
   type?: 'button' | 'submit'
@@ -49,14 +49,15 @@ type ButtonProps = {
 
 const sizes = {
   sm: 'h-9 px-4 text-[13px]',
-  md: 'h-11 px-6 text-sm',
-  lg: 'h-13 px-8 text-[15px]',
+  md: 'h-11 px-5 text-[14px]',
+  lg: 'h-12 px-7 text-[15px]',
 }
 
 const variants = {
-  primary: 'accent-bg text-ink font-bold shine hover:brightness-108 shadow-[0_8px_30px_-10px_rgba(255,120,60,0.7)]',
-  outline: 'hairline text-cream font-semibold hover:bg-surface hover:border-cream/25',
-  ghost: 'text-muted font-semibold hover:text-cream hover:bg-surface',
+  primary: 'bg-blue hover:bg-blue-dark text-white font-semibold shadow-xs transition-colors',
+  outline: 'bg-white border border-line text-cream hover:bg-surface-2 hover:border-gray-300 font-semibold shadow-xs transition-colors',
+  secondary: 'bg-blue-light text-blue hover:bg-blue/15 font-semibold transition-colors',
+  ghost: 'text-muted font-medium hover:text-cream hover:bg-surface-2 transition-colors',
 }
 
 export function Button({
@@ -72,7 +73,7 @@ export function Button({
 }: ButtonProps) {
   const cls = cx(
     'inline-flex items-center justify-center gap-2 rounded-full whitespace-nowrap',
-    'transition-all duration-200 active:scale-[0.97] disabled:opacity-40 disabled:pointer-events-none',
+    'transition-all duration-200 active:scale-[0.98] disabled:opacity-40 disabled:pointer-events-none cursor-pointer',
     sizes[size],
     variants[variant],
     className,
@@ -98,11 +99,11 @@ export function Eyebrow({ children, className }: { children: ReactNode; classNam
   return (
     <span
       className={cx(
-        'inline-flex items-center gap-2.5 text-[11px] font-bold uppercase tracking-[0.22em] text-saffron',
+        'inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.16em] text-blue',
         className,
       )}
     >
-      <span className="h-px w-6 bg-saffron/50" />
+      <span className="h-1.5 w-1.5 rounded-full bg-blue" />
       {children}
     </span>
   )
@@ -126,12 +127,12 @@ export function SectionHead({
   return (
     <div className="mb-10 flex flex-wrap items-end justify-between gap-6">
       <div className="max-w-2xl">
-        {eyebrow && <Eyebrow className="mb-4">{eyebrow}</Eyebrow>}
-        <h2 className="text-[clamp(2rem,4.4vw,3.4rem)] font-extrabold">
+        {eyebrow && <Eyebrow className="mb-3">{eyebrow}</Eyebrow>}
+        <h2 className="text-[clamp(1.9rem,4vw,2.8rem)] font-extrabold tracking-tight text-cream">
           {title}{' '}
-          {accent && <em className="font-serif font-normal not-italic text-gradient italic">{accent}</em>}
+          {accent && <span className="text-blue">{accent}</span>}
         </h2>
-        {blurb && <p className="mt-4 max-w-xl text-[15px] leading-relaxed text-muted">{blurb}</p>}
+        {blurb && <p className="mt-3 max-w-xl text-[15px] leading-relaxed text-muted">{blurb}</p>}
       </div>
       {action}
     </div>
@@ -154,10 +155,10 @@ export function Chip({
       type="button"
       onClick={onClick}
       className={cx(
-        'shrink-0 rounded-full px-4 py-2 text-[13px] font-semibold transition-all duration-200',
+        'shrink-0 rounded-full px-4 py-2 text-[13px] font-semibold transition-all duration-150 cursor-pointer',
         active
-          ? 'bg-cream text-ink shadow-[0_4px_18px_-6px_rgba(246,242,234,0.5)]'
-          : 'hairline text-muted hover:border-cream/25 hover:text-cream',
+          ? 'bg-blue-light text-blue border border-blue shadow-xs font-semibold'
+          : 'bg-white text-muted border border-line hover:border-gray-300 hover:text-cream',
       )}
     >
       {children}
@@ -172,18 +173,21 @@ export function Badge({
   tone = 'neutral',
 }: {
   children: ReactNode
-  tone?: 'neutral' | 'mint' | 'ember' | 'gold'
+  tone?: 'neutral' | 'mint' | 'ember' | 'gold' | 'blue' | 'violet' | 'cyan'
 }) {
   const tones = {
-    neutral: 'bg-cream/10 text-cream/85',
-    mint: 'bg-mint/15 text-mint',
-    ember: 'bg-ember/15 text-ember',
-    gold: 'bg-gold/15 text-gold',
+    neutral: 'bg-gray-100 text-gray-700 border border-gray-200',
+    blue: 'bg-blue-light text-blue font-bold border border-blue/20',
+    violet: 'bg-indigo-50 text-indigo-700 border border-indigo-200',
+    cyan: 'bg-sky-50 text-sky-700 border border-sky-200',
+    mint: 'bg-emerald-50 text-emerald-700 border border-emerald-200',
+    ember: 'bg-rose-50 text-rose-700 border border-rose-200',
+    gold: 'bg-amber-50 text-amber-700 border border-amber-200',
   }
   return (
     <span
       className={cx(
-        'inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] backdrop-blur-sm',
+        'inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-[0.1em]',
         tones[tone],
       )}
     >

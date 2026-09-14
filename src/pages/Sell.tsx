@@ -43,26 +43,21 @@ export default function Sell() {
   const [sent, setSent] = useState(false)
 
   return (
-    <div className="relative">
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -top-20 left-1/2 h-[30rem] w-[60rem] -translate-x-1/2 rounded-full bg-ember/12 blur-[130px]"
-      />
-
-      <div className="relative mx-auto max-w-[1400px] px-5 pt-36 sm:px-8 lg:pt-44">
+    <div className="relative bg-white pb-24">
+      <div className="relative mx-auto max-w-[1400px] px-5 pt-32 sm:px-8 lg:pt-36">
         {/* Hero */}
         <div className="max-w-3xl">
-          <Eyebrow className="mb-5">For organisers & promoters</Eyebrow>
-          <h1 className="text-[clamp(2.6rem,6.4vw,5rem)] font-extrabold">
+          <Eyebrow className="mb-4">For organisers & promoters</Eyebrow>
+          <h1 className="text-[clamp(2.4rem,5.5vw,4.4rem)] font-extrabold text-cream tracking-tight">
             You bring the artist.{' '}
-            <em className="font-serif italic font-normal text-gradient">We'll fill the room.</em>
+            <span className="text-blue">We'll fill the room.</span>
           </h1>
-          <p className="mt-7 max-w-xl text-[16.5px] leading-relaxed text-muted">
+          <p className="mt-5 max-w-xl text-[16px] leading-relaxed text-muted">
             Dry Tickets has been the box office behind desi live entertainment in Australia since
             2013 — ticketing, seat maps, scanning, printing, design and paid social under one roof.
           </p>
-          <div className="mt-10 flex flex-wrap gap-4">
-            <Button href="#enquire" size="lg">
+          <div className="mt-8 flex flex-wrap gap-3">
+            <Button href="#enquire" size="lg" variant="primary">
               Get a quote
               <Arrow className="h-4 w-4" />
             </Button>
@@ -74,14 +69,14 @@ export default function Sell() {
         </div>
 
         {/* Stats */}
-        <div className="mt-20 grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <div className="mt-16 grid grid-cols-2 gap-4 lg:grid-cols-4">
           {stats.map((s, i) => (
-            <Reveal key={s.label} delay={0.06 * i}>
-              <div className="rounded-2xl bg-surface p-7 hairline">
-                <p className="text-[clamp(1.9rem,3.6vw,2.8rem)] font-extrabold tracking-[-0.04em] text-gradient">
+            <Reveal key={s.label} delay={0.05 * i}>
+              <div className="rounded-2xl bg-surface-2 p-6 border border-line">
+                <p className="text-[clamp(1.8rem,3.4vw,2.6rem)] font-black tracking-tight text-cream">
                   {s.value}
                 </p>
-                <p className="mt-1.5 text-[13px] font-medium text-muted">{s.label}</p>
+                <p className="mt-1 text-xs font-semibold text-muted">{s.label}</p>
               </div>
             </Reveal>
           ))}
@@ -100,7 +95,7 @@ export default function Sell() {
             {services.map((s, i) => (
               <Reveal key={s.title} delay={0.06 * i}>
                 <div className="h-full rounded-3xl bg-surface p-8 hairline transition-colors duration-300 hover:bg-surface-2">
-                  <span className="grid h-12 w-12 place-items-center rounded-xl bg-saffron/12 text-saffron">
+                  <span className="grid h-12 w-12 place-items-center rounded-xl bg-blue/15 text-blue-bright">
                     <s.Icon className="h-5 w-5" />
                   </span>
                   <h3 className="mt-6 text-[19px] font-bold text-cream">{s.title}</h3>
@@ -167,9 +162,9 @@ export default function Sell() {
                   </p>
                   <a
                     href="tel:0452337387"
-                    className="mt-3 inline-flex items-center gap-2.5 text-[17px] font-bold text-cream transition-colors hover:text-saffron"
+                    className="mt-3 inline-flex items-center gap-2.5 text-[17px] font-bold text-cream transition-colors hover:text-blue-bright"
                   >
-                    <Phone className="h-4 w-4 text-saffron" />
+                    <Phone className="h-4 w-4 text-blue" />
                     0452 337 387
                   </a>
                   <p className="mt-1.5 text-[12.5px] text-faint">
@@ -232,15 +227,15 @@ export default function Sell() {
                         name="message"
                         rows={4}
                         placeholder="Venue, proposed dates, ticket tiers, anything else we should know…"
-                        className="w-full resize-none rounded-2xl bg-ink px-5 py-4 text-[14px] text-cream placeholder:text-faint hairline focus:outline-none focus:ring-1 focus:ring-saffron/60"
+                        className="w-full resize-none rounded-2xl bg-white px-5 py-4 text-[14px] text-cream placeholder:text-muted border border-[#D0D5DD] focus:outline-none focus:border-blue focus:ring-2 focus:ring-blue-light"
                       />
                     </div>
 
-                    <Button type="submit" size="lg" className="w-full">
+                    <Button type="submit" size="lg" variant="primary" className="w-full">
                       Send enquiry
                       <Arrow className="h-4 w-4" />
                     </Button>
-                    <p className="text-center text-[12px] text-faint">
+                    <p className="text-center text-[12px] text-muted">
                       We reply within one business day.
                     </p>
                   </form>
@@ -271,7 +266,7 @@ function Field({
     <div>
       <label
         htmlFor={name}
-        className="mb-2 block text-[11px] font-bold uppercase tracking-[0.18em] text-faint"
+        className="mb-1.5 block text-xs font-bold text-cream"
       >
         {label}
       </label>
@@ -281,7 +276,7 @@ function Field({
         type={type}
         required={required}
         placeholder={placeholder}
-        className="h-12 w-full rounded-full bg-ink px-5 text-[14px] text-cream placeholder:text-faint hairline focus:outline-none focus:ring-1 focus:ring-saffron/60"
+        className="h-11 w-full rounded-xl bg-white px-4 text-sm text-cream placeholder:text-muted border border-[#D0D5DD] focus:outline-none focus:border-blue focus:ring-2 focus:ring-blue-light"
       />
     </div>
   )

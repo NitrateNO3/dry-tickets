@@ -3,10 +3,11 @@ import { Link, useParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { getEvent, liveEvents } from '../data/events'
 import { cx, fmtDate, fmtTime, money } from '../lib/format'
-import { blurbOf, plural } from '../lib/copy'
+import { blurbOf } from '../lib/copy'
 import { PosterCard } from '../components/PosterCard'
-import { Badge, Button, Eyebrow, Reveal, SectionHead } from '../components/Primitives'
-import { Arrow, Cal, Check, Clock, Pin, Shield, Star, Ticket } from '../components/Icons'
+import { CheckoutModal } from '../components/CheckoutModal'
+import { Badge, Button, Reveal, SectionHead } from '../components/Primitives'
+import { Arrow, Cal, Check, Pin, Shield, Star, Ticket } from '../components/Icons'
 import NotFound from './NotFound'
 
 const BOOKING_FEE_RATE = 0.045
@@ -17,6 +18,7 @@ export default function EventDetail() {
 
   const [tierIdx, setTierIdx] = useState(0)
   const [qty, setQty] = useState(2)
+  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false)
 
   const related = useMemo(
     () =>
@@ -37,330 +39,351 @@ export default function EventDetail() {
   if (!event) return <NotFound />
 
   const tiers = [...event.tiers].sort((a, b) => a.price - b.price)
-  const tier = tiers[tierIdx]
+  const tier = tiers[tierIdx] || tiers[0]
   const subtotal = tier ? tier.price * qty : 0
   const fee = subtotal * BOOKING_FEE_RATE
+  const total = subtotal + fee
   const address = [event.street, event.city, event.region, event.postcode].filter(Boolean).join(', ')
 
   return (
-    <div className="relative">
-      {/* Poster-derived backdrop */}
-      <div aria-hidden className="absolute inset-x-0 top-0 h-[70vh] overflow-hidden">
-        <img
-          src={event.image}
-          alt=""
-          className="h-full w-full scale-125 object-cover opacity-35 blur-3xl saturate-150"
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-ink/70 via-ink/85 to-ink" />
-      </div>
-
-      <div className="relative mx-auto max-w-[1400px] px-5 pt-32 sm:px-8 lg:pt-40">
-        {/* Breadcrumb */}
-        <nav className="mb-10 flex items-center gap-2 text-[12.5px] text-faint">
-          <Link to="/" className="transition-colors hover:text-cream">
+    <div className="relative bg-white pb-24">
+      <div className="mx-auto max-w-[1400px] px-5 pt-28 sm:px-8 lg:pt-36">
+        {/* Breadcrumbs */}
+        <nav className="mb-6 flex items-center gap-2 text-xs text-muted">
+          <Link to="/" className="hover:text-blue transition-colors">
             Home
           </Link>
           <span>/</span>
-          <Link to="/events" className="transition-colors hover:text-cream">
+          <Link to="/events" className="hover:text-blue transition-colors">
             Events
           </Link>
           <span>/</span>
-          <span className="truncate text-muted">{event.metro}</span>
+          <Link to={`/events?city=${encodeURIComponent(event.metro)}`} className="hover:text-blue transition-colors">
+            {event.metro}
+          </Link>
+          <span>/</span>
+          <span className="truncate text-cream font-medium max-w-[200px]">{event.title}</span>
         </nav>
 
-        <div className="grid gap-12 lg:grid-cols-[minmax(0,1fr)_400px] lg:gap-16">
-          {/* ------------------------------------------------------ Main */}
+        {/* 2-Column Layout: Left = Poster Artwork, Right = Event Information & Booking Box */}
+        <div className="grid gap-10 lg:grid-cols-[420px_1fr] lg:gap-14 items-start">
+          {/* LEFT COLUMN: Event Poster Artwork + Guarantees */}
+          <div className="lg:sticky lg:top-28">
+            <div className="overflow-hidden rounded-2xl bg-surface-2 border border-line shadow-xs">
+              <img
+                src={event.image}
+                alt={`${event.title} poster`}
+                fetchPriority="high"
+                className="w-full aspect-[460/580] object-cover"
+              />
+            </div>
+
+            {/* Quick Guarantees Below Poster */}
+            <div className="mt-4 rounded-2xl bg-surface-2 p-4 border border-line space-y-2.5 text-xs text-muted">
+              <div className="flex items-center gap-2 text-cream font-medium">
+                <Shield className="h-4 w-4 text-emerald-600 shrink-0" />
+                <span>100% Official Verified Tickets</span>
+              </div>
+              <div className="flex items-center gap-2 text-cream font-medium">
+                <Ticket className="h-4 w-4 text-blue shrink-0" />
+                <span>Instant Mobile Barcode E-Ticket</span>
+              </div>
+              <div className="flex items-center gap-2 text-cream font-medium">
+                <Check className="h-4 w-4 text-blue shrink-0" />
+                <span>Sydney-based Australian Support</span>
+              </div>
+            </div>
+          </div>
+
+          {/* RIGHT COLUMN: Event Information & Booking Box */}
           <div>
-            <div className="flex flex-wrap items-center gap-2.5">
-              <Badge tone="mint">{event.presale ? 'Presale' : 'On sale now'}</Badge>
-              <Badge>{event.category}</Badge>
+            {/* Badges */}
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge tone="blue">{event.category}</Badge>
+              {event.presale && <Badge tone="gold">VIP Presale</Badge>}
+              <span className="rounded-full bg-surface-2 px-2.5 py-0.5 text-[11px] font-semibold text-muted border border-line">
+                {event.metro}, Australia
+              </span>
               {event.rating && (
-                <span className="inline-flex items-center gap-1.5 text-[12px] font-bold text-gold">
-                  <Star className="h-3.5 w-3.5" />
+                <span className="inline-flex items-center gap-1 text-xs font-bold text-amber-600">
+                  <Star className="h-3.5 w-3.5 fill-current" />
                   {event.rating.toFixed(1)}
-                  <span className="font-medium text-faint">
-                    · {event.ratingCount} {plural(event.ratingCount ?? 0, 'review')}
+                  <span className="text-muted font-normal">
+                    ({event.ratingCount} reviews)
                   </span>
                 </span>
               )}
             </div>
 
+            {/* Event Name */}
             <motion.h1
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-              className="mt-6 text-[clamp(2.2rem,5.4vw,4.2rem)] font-extrabold"
+              transition={{ duration: 0.5 }}
+              className="mt-4 text-[clamp(2rem,4.2vw,3.2rem)] font-extrabold leading-tight text-cream"
             >
               {event.title}
             </motion.h1>
 
-            {/* Key facts */}
-            <div className="mt-10 grid gap-3 sm:grid-cols-3">
-              {[
-                { Icon: Cal, label: 'Date', value: fmtDate(event.start) },
-                {
-                  Icon: Clock,
-                  label: 'Doors',
-                  value: event.start ? `${fmtTime(event.start)} – ${fmtTime(event.end)}` : 'TBA',
-                },
-                { Icon: Pin, label: 'Venue', value: event.venue ?? 'To be announced' },
-              ].map((f) => (
-                <div key={f.label} className="rounded-2xl bg-surface/70 p-5 hairline">
-                  <span className="inline-flex items-center gap-2 text-[10.5px] font-bold uppercase tracking-[0.18em] text-faint">
-                    <f.Icon className="h-3.5 w-3.5 text-saffron" />
-                    {f.label}
+            {/* Prominent Event Details */}
+            <div className="mt-6 rounded-2xl bg-surface-2 p-5 border border-line">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="flex items-start gap-3">
+                  <span className="grid h-9 w-9 place-items-center rounded-xl bg-blue-light text-blue shrink-0">
+                    <Cal className="h-4 w-4" />
                   </span>
-                  <p className="mt-2.5 text-[14.5px] font-bold leading-snug text-cream">{f.value}</p>
-                </div>
-              ))}
-            </div>
-
-            {/* About */}
-            <div className="mt-14">
-              <h2 className="text-[13px] font-bold uppercase tracking-[0.22em] text-saffron">
-                About this event
-              </h2>
-              <p className="mt-5 max-w-2xl text-[16px] leading-[1.75] text-muted">
-                {blurbOf(event)}
-              </p>
-
-              <ul className="mt-8 grid gap-3 sm:grid-cols-2">
-                {[
-                  'Instant e-ticket delivery by email',
-                  'Barcode scanned entry — no printing needed',
-                  'Verified seller, no resale markups',
-                  'Support Mon–Fri, 9:00am – 5:30pm AEST',
-                ].map((p) => (
-                  <li key={p} className="flex items-start gap-3 text-[14px] text-cream/85">
-                    <span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-mint/15 text-mint">
-                      <Check className="h-3 w-3" />
+                  <div>
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-muted">
+                      Date & Time
                     </span>
-                    {p}
-                  </li>
-                ))}
-              </ul>
-            </div>
+                    <p className="text-sm font-bold text-cream mt-0.5">
+                      {fmtDate(event.start)}
+                    </p>
+                    <p className="text-xs text-muted">
+                      {fmtTime(event.start)} AEST
+                    </p>
+                  </div>
+                </div>
 
-            {/* Lineup */}
-            {event.artists.length > 0 && (
-              <div className="mt-14">
-                <h2 className="text-[13px] font-bold uppercase tracking-[0.22em] text-saffron">
-                  Performing live
-                </h2>
-                <div className="mt-5 flex flex-wrap gap-4">
-                  {event.artists.map((a) => (
-                    <Link
-                      key={a.name}
-                      to={`/events?q=${encodeURIComponent(a.name)}`}
-                      className="group flex items-center gap-4 rounded-2xl bg-surface p-3 pr-6 hairline transition-colors hover:bg-surface-2"
-                    >
-                      {a.image && (
-                        <img
-                          src={a.image}
-                          alt={a.name}
-                          loading="lazy"
-                          className="h-14 w-14 rounded-xl object-cover"
-                        />
-                      )}
-                      <div>
-                        <p className="text-[15px] font-bold text-cream transition-colors group-hover:text-saffron">
-                          {a.name}
-                        </p>
-                        <p className="text-[12px] text-faint">See all dates</p>
-                      </div>
-                    </Link>
-                  ))}
+                <div className="flex items-start gap-3">
+                  <span className="grid h-9 w-9 place-items-center rounded-xl bg-blue-light text-blue shrink-0">
+                    <Pin className="h-4 w-4" />
+                  </span>
+                  <div>
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-muted">
+                      Venue & Location
+                    </span>
+                    <p className="text-sm font-bold text-cream mt-0.5 truncate">
+                      {event.venue || 'Major Venue'}
+                    </p>
+                    <p className="text-xs text-muted truncate">
+                      {event.metro}, Australia
+                    </p>
+                  </div>
                 </div>
               </div>
-            )}
 
-            {/* Venue */}
-            {event.venue && (
-              <div className="mt-14">
-                <h2 className="text-[13px] font-bold uppercase tracking-[0.22em] text-saffron">
-                  Getting there
-                </h2>
-                <div className="mt-5 overflow-hidden rounded-3xl bg-surface hairline">
-                  <div className="flex flex-wrap items-center justify-between gap-5 p-7">
-                    <div>
-                      <h3 className="text-[19px] font-bold text-cream">{event.venue}</h3>
-                      <p className="mt-1.5 text-[14px] text-muted">{address}</p>
-                    </div>
-                    <Button
-                      href={`https://maps.google.com/?q=${encodeURIComponent(
-                        `${event.venue}, ${address}`,
-                      )}`}
-                      variant="outline"
-                    >
-                      Open in Maps
-                      <Arrow className="h-4 w-4" />
-                    </Button>
-                  </div>
-                  {/* Stylised map placeholder — keeps the layout honest without a paid map key */}
-                  <div className="relative h-44 overflow-hidden border-t border-line bg-ink-2">
-                    <div
-                      aria-hidden
-                      className="absolute inset-0 opacity-[0.18]"
-                      style={{
-                        backgroundImage:
-                          'linear-gradient(var(--color-line) 1px, transparent 1px), linear-gradient(90deg, var(--color-line) 1px, transparent 1px)',
-                        backgroundSize: '38px 38px',
-                      }}
+              {/* Starting Price Header */}
+              {event.low !== undefined && (
+                <div className="mt-4 pt-4 border-t border-line flex items-baseline justify-between">
+                  <span className="text-xs font-semibold text-muted">Ticket Pricing</span>
+                  <span className="text-sm text-muted">
+                    From <strong className="text-lg font-black text-cream">{money(event.low)} AUD</strong>
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {/* Ticket Booking Box */}
+            <div className="mt-8 rounded-3xl bg-white p-6 border border-line shadow-xs">
+              {tiers.length === 0 ? (
+                <div className="text-center py-4">
+                  <Badge tone="gold">VIP Presale</Badge>
+                  <h3 className="mt-3 text-base font-bold text-cream">
+                    Tickets Not Yet On Public Sale
+                  </h3>
+                  <p className="mt-1.5 text-xs text-muted leading-relaxed max-w-sm mx-auto">
+                    Register your email to receive an early-bird VIP presale code 24 hours prior to public release.
+                  </p>
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault()
+                      alert('Thank you! You are on the presale notification list.')
+                    }}
+                    className="mt-4 max-w-sm mx-auto space-y-2.5"
+                  >
+                    <input
+                      type="email"
+                      required
+                      placeholder="your.email@example.com"
+                      aria-label="Email for presale"
+                      className="h-11 w-full rounded-xl bg-white px-4 text-xs text-cream placeholder:text-muted border border-[#D0D5DD] focus:outline-none focus:border-blue focus:ring-2 focus:ring-blue-light"
                     />
-                    <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-                      <span className="relative grid h-11 w-11 place-items-center rounded-full accent-bg text-ink">
-                        <Pin className="h-5 w-5" />
-                        <span className="absolute inset-0 animate-ping rounded-full bg-saffron/40" />
+                    <Button type="submit" size="md" variant="primary" className="w-full">
+                      Notify Me at Presale
+                    </Button>
+                  </form>
+                </div>
+              ) : (
+                <>
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-muted">
+                      Select Ticket Tier
+                    </h3>
+                    <span className="text-xs font-semibold text-blue">AUD Currency</span>
+                  </div>
+
+                  {/* Tier Selector */}
+                  <div className="space-y-2.5">
+                    {tiers.map((t, i) => {
+                      const sold = t.availability === 'SoldOut'
+                      const selected = i === tierIdx
+                      return (
+                        <button
+                          key={`${t.name}-${i}`}
+                          type="button"
+                          disabled={sold}
+                          onClick={() => setTierIdx(i)}
+                          className={cx(
+                            'flex w-full items-center justify-between gap-3 rounded-2xl p-3.5 text-left transition-all cursor-pointer border',
+                            sold && 'cursor-not-allowed opacity-40 bg-gray-50 border-line',
+                            selected && !sold
+                              ? 'bg-blue-light border-blue text-cream ring-1 ring-blue'
+                              : 'bg-white border-line hover:border-gray-300',
+                          )}
+                        >
+                          <div className="min-w-0">
+                            <p className="truncate text-sm font-bold text-cream">{t.name}</p>
+                            <p className="text-[11px] font-semibold text-emerald-600 mt-0.5">
+                              {sold ? 'Sold Out' : 'Instant E-Ticket'}
+                            </p>
+                          </div>
+                          <span className="shrink-0 text-sm font-black text-cream">
+                            {money(t.price)} AUD
+                          </span>
+                        </button>
+                      )
+                    })}
+                  </div>
+
+                  {/* Quantity Picker */}
+                  <div className="mt-5 flex items-center justify-between rounded-2xl bg-surface-2 px-4 py-3 border border-line">
+                    <span className="text-xs font-bold text-cream">Number of Tickets</span>
+                    <div className="flex items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setQty((n) => Math.max(1, n - 1))}
+                        aria-label="Decrease tickets"
+                        className="grid h-8 w-8 place-items-center rounded-full bg-white border border-line text-sm font-bold text-cream hover:bg-gray-100 transition-colors cursor-pointer"
+                      >
+                        −
+                      </button>
+                      <span className="w-6 text-center text-sm font-black text-cream">
+                        {qty}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setQty((n) => Math.min(10, n + 1))}
+                        aria-label="Increase tickets"
+                        className="grid h-8 w-8 place-items-center rounded-full bg-white border border-line text-sm font-bold text-cream hover:bg-gray-100 transition-colors cursor-pointer"
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Pricing Breakdown */}
+                  <div className="mt-5 space-y-2 border-t border-line pt-4 text-xs">
+                    <div className="flex justify-between text-muted">
+                      <span>
+                        {qty} × {tier?.name || 'General Admission'}
+                      </span>
+                      <span className="font-semibold text-cream">{money(subtotal)} AUD</span>
+                    </div>
+                    <div className="flex justify-between text-muted">
+                      <span>Booking & Facility Fee</span>
+                      <span className="font-semibold text-cream">{money(fee)} AUD</span>
+                    </div>
+                    <div className="flex items-baseline justify-between border-t border-line pt-3 text-sm font-bold text-cream">
+                      <span>Total Payable</span>
+                      <span className="text-xl font-black text-cream">
+                        {money(total)} AUD
                       </span>
                     </div>
                   </div>
+
+                  {/* Primary Get Tickets Button */}
+                  <Button
+                    size="lg"
+                    variant="primary"
+                    onClick={() => setIsCheckoutOpen(true)}
+                    className="mt-6 w-full font-bold shadow-xs py-3.5"
+                  >
+                    <Ticket className="h-4 w-4" />
+                    Get Tickets · {money(total)} AUD
+                  </Button>
+
+                  <div className="mt-3 flex items-center justify-center gap-1.5 text-[11px] text-muted">
+                    <Shield className="h-3.5 w-3.5 text-emerald-600" />
+                    <span>No customer sign-in required · Instant barcode delivery</span>
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* About This Event */}
+            <div className="mt-12">
+              <h2 className="text-xs font-bold uppercase tracking-wider text-blue mb-3">
+                About the Event
+              </h2>
+              <p className="text-[15px] leading-relaxed text-muted">
+                {blurbOf(event)}
+              </p>
+
+              <div className="mt-6 rounded-2xl bg-surface-2 p-5 border border-line">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-cream mb-3">
+                  Admission & Venue Notes
+                </h3>
+                <ul className="grid gap-2.5 sm:grid-cols-2 text-xs text-cream">
+                  <li className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-emerald-600 shrink-0" />
+                    <span>Mobile e-ticket accepted on smartphone</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-emerald-600 shrink-0" />
+                    <span>Australian ID required for 18+ areas</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-emerald-600 shrink-0" />
+                    <span>Reserved seating allocated on arrival</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-emerald-600 shrink-0" />
+                    <span>Face-value transparent AUD booking fee</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            {/* Venue Location Details */}
+            {address && (
+              <div className="mt-8 rounded-2xl bg-white p-5 border border-line">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-blue mb-1">
+                      Venue Address
+                    </h3>
+                    <p className="text-sm font-bold text-cream">{event.venue}</p>
+                    <p className="text-xs text-muted mt-0.5">{address}</p>
+                  </div>
+                  <Button
+                    href={`https://maps.google.com/?q=${encodeURIComponent(`${event.venue} ${address}`)}`}
+                    size="sm"
+                    variant="outline"
+                  >
+                    Open in Maps
+                    <Arrow className="h-3 w-3" />
+                  </Button>
                 </div>
               </div>
             )}
           </div>
-
-          {/* ---------------------------------------------------- Sidebar */}
-          <aside id="tickets" className="scroll-mt-24 lg:sticky lg:top-28 lg:h-fit">
-            <div className="overflow-hidden rounded-3xl bg-surface hairline">
-              <img
-                src={event.image}
-                alt={`${event.title} poster`}
-                className="aspect-[460/651] w-full object-cover"
-              />
-
-              <div className="p-6">
-                {tiers.length === 0 ? (
-                  <div className="text-center">
-                    <Badge tone="gold">Presale</Badge>
-                    <h3 className="mt-4 text-[17px] font-bold text-cream">
-                      Tickets not yet on sale
-                    </h3>
-                    <p className="mt-2 text-[13.5px] leading-relaxed text-muted">
-                      Register now and we'll email you a presale code before general on-sale.
-                    </p>
-                    <form onSubmit={(e) => e.preventDefault()} className="mt-5 space-y-3">
-                      <input
-                        type="email"
-                        required
-                        placeholder="your@email.com"
-                        aria-label="Email for presale"
-                        className="h-11 w-full rounded-full bg-ink px-5 text-[13.5px] text-cream placeholder:text-faint hairline focus:outline-none focus:ring-1 focus:ring-saffron/60"
-                      />
-                      <Button type="submit" className="w-full">
-                        Notify me
-                      </Button>
-                    </form>
-                  </div>
-                ) : (
-                  <>
-                    <h3 className="text-[11px] font-bold uppercase tracking-[0.2em] text-faint">
-                      Select ticket
-                    </h3>
-
-                    <div className="mt-4 space-y-2">
-                      {tiers.map((t, i) => {
-                        const sold = t.availability === 'SoldOut'
-                        return (
-                          <button
-                            key={`${t.name}-${i}`}
-                            type="button"
-                            disabled={sold}
-                            onClick={() => setTierIdx(i)}
-                            className={cx(
-                              'flex w-full items-center justify-between gap-3 rounded-xl px-4 py-3.5 text-left transition-all duration-200',
-                              sold && 'cursor-not-allowed opacity-40',
-                              i === tierIdx && !sold
-                                ? 'bg-saffron/12 ring-1 ring-saffron'
-                                : 'bg-ink hairline hover:border-cream/20',
-                            )}
-                          >
-                            <span className="min-w-0">
-                              <span className="block truncate text-[13.5px] font-bold text-cream">
-                                {t.name}
-                              </span>
-                              <span className="text-[11px] font-semibold text-mint">
-                                {sold ? 'Sold out' : 'Limited availability'}
-                              </span>
-                            </span>
-                            <span className="shrink-0 text-[15px] font-extrabold text-cream">
-                              {money(t.price)}
-                            </span>
-                          </button>
-                        )
-                      })}
-                    </div>
-
-                    {/* Quantity */}
-                    <div className="mt-5 flex items-center justify-between rounded-xl bg-ink px-4 py-3 hairline">
-                      <span className="text-[13px] font-semibold text-muted">Quantity</span>
-                      <div className="flex items-center gap-3">
-                        <button
-                          type="button"
-                          onClick={() => setQty((n) => Math.max(1, n - 1))}
-                          aria-label="Decrease quantity"
-                          className="grid h-8 w-8 place-items-center rounded-full bg-surface-2 text-[17px] font-bold text-cream transition-colors hover:bg-saffron hover:text-ink"
-                        >
-                          −
-                        </button>
-                        <span className="w-6 text-center text-[15px] font-extrabold text-cream">
-                          {qty}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => setQty((n) => Math.min(10, n + 1))}
-                          aria-label="Increase quantity"
-                          className="grid h-8 w-8 place-items-center rounded-full bg-surface-2 text-[17px] font-bold text-cream transition-colors hover:bg-saffron hover:text-ink"
-                        >
-                          +
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Totals */}
-                    <dl className="mt-5 space-y-2 border-t border-line pt-5 text-[13px]">
-                      <div className="flex justify-between text-muted">
-                        <dt>
-                          {qty} × {tier?.name}
-                        </dt>
-                        <dd className="font-semibold text-cream">{money(subtotal)}</dd>
-                      </div>
-                      <div className="flex justify-between text-muted">
-                        <dt>Booking fee</dt>
-                        <dd className="font-semibold text-cream">{money(fee)}</dd>
-                      </div>
-                      <div className="flex items-baseline justify-between border-t border-line pt-3">
-                        <dt className="text-[13px] font-bold text-cream">Total</dt>
-                        <dd className="text-[22px] font-extrabold text-gradient">
-                          {money(subtotal + fee)}
-                        </dd>
-                      </div>
-                    </dl>
-
-                    <Button size="lg" className="mt-5 w-full">
-                      <Ticket className="h-[18px] w-[18px]" />
-                      Checkout
-                    </Button>
-
-                    <p className="mt-4 flex items-center justify-center gap-2 text-[11.5px] text-faint">
-                      <Shield className="h-3.5 w-3.5 text-mint" />
-                      Secure checkout · Visa, Mastercard, Amex
-                    </p>
-                  </>
-                )}
-              </div>
-            </div>
-          </aside>
         </div>
 
-        {/* Related */}
+        {/* Related Events Rail */}
         {related.length > 0 && (
-          <section className="mt-32">
+          <section className="mt-24 pt-16 border-t border-line">
             <Reveal>
-              <SectionHead eyebrow="You might also like" title="More" accent="like this" />
+              <SectionHead
+                eyebrow="More Shows"
+                title="You might also"
+                accent="like"
+                blurb="Explore other popular live events happening across Australia."
+              />
             </Reveal>
-            <div className="grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-5">
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
               {related.map((e, i) => (
-                <Reveal key={e.slug} delay={0.05 * i}>
+                <Reveal key={e.slug} delay={0.04 * i}>
                   <PosterCard event={e} index={i} />
                 </Reveal>
               ))}
@@ -369,34 +392,44 @@ export default function EventDetail() {
         )}
       </div>
 
-      {/* Mobile sticky buy bar */}
+      {/* Sticky Mobile Booking Bar */}
       {tiers.length > 0 && (
-        <div className="fixed inset-x-0 bottom-0 z-40 glass border-t border-line p-4 lg:hidden">
-          <div className="flex items-center justify-between gap-4">
+        <div className="fixed inset-x-0 bottom-0 z-40 bg-white/95 backdrop-blur-md border-t border-line p-3.5 lg:hidden shadow-lg">
+          <div className="flex items-center justify-between gap-3">
             <div>
-              <p className="text-[10.5px] font-bold uppercase tracking-[0.16em] text-faint">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-muted">
                 From
               </p>
-              <p className="text-[19px] font-extrabold leading-tight text-cream">
-                {money(event.low)}
+              <p className="text-base font-black text-cream leading-none mt-0.5">
+                {money(event.low)} AUD
               </p>
             </div>
             <Button
-              size="lg"
-              className="flex-1"
-              onClick={() =>
-                document.getElementById('tickets')?.scrollIntoView({ behavior: 'smooth' })
-              }
+              size="md"
+              variant="primary"
+              className="flex-1 font-bold"
+              onClick={() => setIsCheckoutOpen(true)}
             >
-              <Ticket className="h-[18px] w-[18px]" />
-              Get tickets
+              <Ticket className="h-4 w-4" />
+              Get Tickets
             </Button>
           </div>
         </div>
       )}
-      <div className="h-20 lg:hidden" />
 
-      <Eyebrow className="sr-only">End of event</Eyebrow>
+      {/* Frictionless Checkout Modal */}
+      {tier && (
+        <CheckoutModal
+          isOpen={isCheckoutOpen}
+          onClose={() => setIsCheckoutOpen(false)}
+          event={event}
+          tier={tier}
+          qty={qty}
+          subtotal={subtotal}
+          fee={fee}
+          total={total}
+        />
+      )}
     </div>
   )
 }

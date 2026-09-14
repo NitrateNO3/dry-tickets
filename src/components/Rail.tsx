@@ -34,7 +34,7 @@ export function Rail({ events }: { events: EventItem[] }) {
           type="button"
           onClick={() => scrollBy(-1)}
           aria-label="Scroll left"
-          className="grid h-11 w-11 place-items-center rounded-full hairline text-cream transition-all duration-200 hover:border-saffron/40 hover:text-saffron active:scale-95"
+          className="grid h-11 w-11 place-items-center rounded-full hairline text-cream transition-all duration-200 hover:border-blue/40 hover:text-blue active:scale-95"
         >
           <Arrow className="h-4 w-4 rotate-180" />
         </button>
@@ -42,7 +42,7 @@ export function Rail({ events }: { events: EventItem[] }) {
           type="button"
           onClick={() => scrollBy(1)}
           aria-label="Scroll right"
-          className="grid h-11 w-11 place-items-center rounded-full hairline text-cream transition-all duration-200 hover:border-saffron/40 hover:text-saffron active:scale-95"
+          className="grid h-11 w-11 place-items-center rounded-full hairline text-cream transition-all duration-200 hover:border-blue/40 hover:text-blue active:scale-95"
         >
           <Arrow className="h-4 w-4" />
         </button>

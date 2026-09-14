@@ -680,10 +680,240 @@ export const events: EventItem[] = [
     category: 'Comedy',
     presale: false,
   },
+  {
+    slug: 'perth-bhangra-beats-live-rac-arena-2026',
+    title: 'Perth Bollywood & Bhangra Beats 2026 — Live at RAC Arena',
+    description: 'Western Australia\'s biggest live music spectacle featuring headliner vocalists, live dhol symphony, and high-energy percussion under the lights of RAC Arena.',
+    image: 'https://drytickets.com.au/assets/upload/460/651/60/events/1670-punjabi-virsa-2026-live-in-melbourne-manmohan-waris-kamal-heer-sangtar-1786086890.png',
+    start: '2026-09-26T19:30:00+08:00',
+    end: '2026-09-26T23:00:00+08:00',
+    rating: 4.9,
+    ratingCount: 42,
+    venue: 'RAC Arena',
+    street: '700 Wellington Street',
+    city: 'Perth',
+    metro: 'Perth',
+    region: 'WA',
+    postcode: '6000',
+    country: 'AU',
+    artists: [{ name: 'Manmohan Waris', image: 'https://drytickets.com.au/assets/upload/450/270/60/celebrities/82-jagpreet-grover.jpg' }],
+    tiers: [
+      { name: 'General Admission', price: 49.0, availability: 'InStock' },
+      { name: 'Reserved Silver Floor', price: 89.0, availability: 'LimitedAvailability' },
+      { name: 'VIP Gold Fan Pit', price: 159.0, availability: 'LimitedAvailability' }
+    ],
+    low: 49.0,
+    high: 159.0,
+    category: 'Concert',
+    presale: false,
+  },
+  {
+    slug: 'adelaide-comedy-gala-live-aec-2026',
+    title: 'All-Star Stand-Up Comedy Gala — Live in Adelaide',
+    description: 'A hilarious evening of observational desi humour, stand-up headliners, and sharp crowd work live at Adelaide Entertainment Centre Theatre.',
+    image: 'https://drytickets.com.au/assets/upload/460/651/60/events/1637-varun-sharma-aka-choocha-live-in-sydney-2026-1776588589.png',
+    start: '2026-10-04T19:00:00+09:30',
+    end: '2026-10-04T22:00:00+09:30',
+    rating: 4.8,
+    ratingCount: 28,
+    venue: 'Adelaide Entertainment Centre',
+    street: '98 Port Road, Hindmarsh',
+    city: 'Adelaide',
+    metro: 'Adelaide',
+    region: 'SA',
+    postcode: '5007',
+    country: 'AU',
+    artists: [{ name: 'Varun Sharma', image: 'https://drytickets.com.au/assets/upload/450/270/60/celebrities/82-jagpreet-grover.jpg' }],
+    tiers: [
+      { name: 'General Admission', price: 39.0, availability: 'InStock' },
+      { name: 'Premium Stalls', price: 69.0, availability: 'LimitedAvailability' },
+      { name: 'VIP Meet & Greet', price: 119.0, availability: 'LimitedAvailability' }
+    ],
+    low: 39.0,
+    high: 119.0,
+    category: 'Comedy',
+    presale: false,
+  },
+  {
+    slug: 'gold-coast-sunshine-fusion-festival-2026',
+    title: 'Gold Coast Desi Fusion Fest 2026 — HOTA Outdoor Stage',
+    description: 'Under the Queensland stars: live indie fusion, street food bazaars, DJ sunset sessions, and cultural dance celebrations at HOTA Home of the Arts.',
+    image: 'https://drytickets.com.au/assets/upload/460/651/60/events/1677-the-khan-saab-the-man-behind-dhurandhar-s-biggest-anthem-live-aus-nz-tour-2026-1781512877.jpeg',
+    start: '2026-10-18T15:00:00+10:00',
+    end: '2026-10-18T22:30:00+10:00',
+    rating: 5.0,
+    ratingCount: 35,
+    venue: 'HOTA (Home of the Arts)',
+    street: '135 Bundall Road, Surfers Paradise',
+    city: 'Gold Coast',
+    metro: 'Gold Coast',
+    region: 'QLD',
+    postcode: '4217',
+    country: 'AU',
+    artists: [{ name: 'Khan Saab', image: 'https://drytickets.com.au/assets/upload/450/270/60/celebrities/962-khan-saab.jpg' }],
+    tiers: [
+      { name: 'Early Bird Pass', price: 35.0, availability: 'InStock' },
+      { name: 'General Festival Pass', price: 55.0, availability: 'InStock' },
+      { name: 'VIP Sunset Lounge', price: 120.0, availability: 'LimitedAvailability' }
+    ],
+    low: 35.0,
+    high: 120.0,
+    category: 'Festival',
+    presale: false,
+  },
+  {
+    slug: 'hobart-sufi-strings-qawwali-night-2026',
+    title: 'Tasmanian Sufi & Qawwali Mystical Night — Hobart',
+    description: 'A transcendent evening of devotional poetry, acoustic harmonium, tabla rhythms, and traditional qawwali in Hobart\'s historic Odeon Theatre.',
+    image: 'https://drytickets.com.au/assets/upload/460/651/60/events/1641-bansuri-a-tale-of-love-christchurch-nz-2pm-1777806946.png',
+    start: '2026-11-07T19:00:00+11:00',
+    end: '2026-11-07T22:00:00+11:00',
+    rating: 4.9,
+    ratingCount: 19,
+    venue: 'Odeon Theatre',
+    street: '167 Liverpool Street',
+    city: 'Hobart',
+    metro: 'Hobart',
+    region: 'TAS',
+    postcode: '7000',
+    country: 'AU',
+    artists: [{ name: 'Suresh Wadkar', image: 'https://drytickets.com.au/assets/upload/450/270/60/celebrities/642-suresh-wadkar.jpg' }],
+    tiers: [
+      { name: 'General Admission', price: 45.0, availability: 'InStock' },
+      { name: 'Dress Circle', price: 75.0, availability: 'LimitedAvailability' },
+      { name: 'Royal Box Seats', price: 135.0, availability: 'LimitedAvailability' }
+    ],
+    low: 45.0,
+    high: 135.0,
+    category: 'Sufi & Qawwali',
+    presale: false,
+  },
+  {
+    slug: 'sydney-australian-cricket-championship-fan-fest-2026',
+    title: 'Community Cricket Fan Gala & Live Screening — ICC Sydney',
+    description: 'Huge 4K stadium screen broadcast, live acoustic halftime concerts, food trucks, and legendary cricketer Q&A session at ICC Sydney Grand Ballroom.',
+    image: 'https://drytickets.com.au/assets/upload/460/651/60/events/1720-legendary-playback-singer-suresh-wadkar-aus-nz-tour-2027-1786595839.png',
+    start: '2026-10-24T17:30:00+11:00',
+    end: '2026-10-24T23:00:00+11:00',
+    rating: 4.7,
+    ratingCount: 52,
+    venue: 'ICC Sydney Grand Ballroom',
+    street: '14 Darling Drive',
+    city: 'Sydney',
+    metro: 'Sydney',
+    region: 'NSW',
+    postcode: '2000',
+    country: 'AU',
+    artists: [{ name: 'Jagpreet Grover', image: 'https://drytickets.com.au/assets/upload/450/270/60/celebrities/82-jagpreet-grover.jpg' }],
+    tiers: [
+      { name: 'Fan Zone Entry', price: 30.0, availability: 'InStock' },
+      { name: 'Family Pass (4 Tickets)', price: 99.0, availability: 'InStock' },
+      { name: 'VIP Corporate Table', price: 160.0, availability: 'LimitedAvailability' }
+    ],
+    low: 30.0,
+    high: 160.0,
+    category: 'Sports',
+    presale: false,
+  },
+  {
+    slug: 'melbourne-theatre-royal-court-musical-2026',
+    title: 'The Royal Court: Indian Musical Theatre Live in Melbourne',
+    description: 'A grand Broadway-scale theatrical production with opulent costumes, 30+ dancers, live classical symphonies and timeless romance at Palais Theatre.',
+    image: 'https://drytickets.com.au/assets/upload/460/651/60/events/1642-bansuri-a-tale-of-love-christchurch-nz-6-30pm-1777808383.png',
+    start: '2026-11-14T19:30:00+11:00',
+    end: '2026-11-14T22:30:00+11:00',
+    rating: 5.0,
+    ratingCount: 31,
+    venue: 'Palais Theatre St Kilda',
+    street: 'Lower Esplanade, St Kilda',
+    city: 'Melbourne',
+    metro: 'Melbourne',
+    region: 'VIC',
+    postcode: '3182',
+    country: 'AU',
+    artists: [{ name: 'Suresh Wadkar', image: 'https://drytickets.com.au/assets/upload/450/270/60/celebrities/642-suresh-wadkar.jpg' }],
+    tiers: [
+      { name: 'Balcony Reserved', price: 55.0, availability: 'InStock' },
+      { name: 'Stalls Premium', price: 85.0, availability: 'LimitedAvailability' },
+      { name: 'VIP Orchestral Tier', price: 145.0, availability: 'LimitedAvailability' }
+    ],
+    low: 55.0,
+    high: 145.0,
+    category: 'Theatre',
+    presale: false,
+  },
 ]
 
 export const categories = Array.from(new Set(events.map((e) => e.category))).sort()
 export const metros = Array.from(new Set(events.filter((e) => !e.presale).map((e) => e.metro))).sort()
+
+export type CityMeta = {
+  name: string
+  state: string
+  tagline: string
+  image: string
+}
+
+export const AUSTRALIAN_CITIES: CityMeta[] = [
+  {
+    name: 'Sydney',
+    state: 'NSW',
+    tagline: 'Enmore, ICC & Hordern Pavilion',
+    image: 'https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9?auto=format&fit=crop&w=800&q=80',
+  },
+  {
+    name: 'Melbourne',
+    state: 'VIC',
+    tagline: 'Palais Theatre & Margaret Court Arena',
+    image: 'https://images.unsplash.com/photo-1514395462725-fb4566210144?auto=format&fit=crop&w=800&q=80',
+  },
+  {
+    name: 'Brisbane',
+    state: 'QLD',
+    tagline: 'BCEC & Fortitude Music Hall',
+    image: 'https://images.unsplash.com/photo-1563805042-7684c019e1cb?auto=format&fit=crop&w=800&q=80',
+  },
+  {
+    name: 'Perth',
+    state: 'WA',
+    tagline: 'RAC Arena & Perth Concert Hall',
+    image: 'https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?auto=format&fit=crop&w=800&q=80',
+  },
+  {
+    name: 'Adelaide',
+    state: 'SA',
+    tagline: 'Adelaide Entertainment Centre',
+    image: 'https://images.unsplash.com/photo-1549880338-65ddcdfd017b?auto=format&fit=crop&w=800&q=80',
+  },
+  {
+    name: 'Gold Coast',
+    state: 'QLD',
+    tagline: 'HOTA Home of the Arts & Surfers',
+    image: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80',
+  },
+  {
+    name: 'Canberra',
+    state: 'ACT',
+    tagline: 'Canberra Theatre Centre & AIS',
+    image: 'https://images.unsplash.com/photo-1528728329032-2972f65dfb3f?auto=format&fit=crop&w=800&q=80',
+  },
+  {
+    name: 'Hobart',
+    state: 'TAS',
+    tagline: 'Odeon Theatre & Federation Hall',
+    image: 'https://images.unsplash.com/photo-1510525009512-ab7522cabc66?auto=format&fit=crop&w=800&q=80',
+  },
+]
+
+export const AUSTRALIAN_GENRES = [
+  { id: 'all', label: 'All Events', icon: '✨' },
+  { id: 'Concert', label: 'Concerts & Music', icon: '🎵' },
+  { id: 'Comedy', label: 'Stand-up Comedy', icon: '🎭' },
+  { id: 'Festival', label: 'Festivals & Club Nights', icon: '🪩' },
+  { id: 'Theatre', label: 'Theatre & Arts', icon: '🏛️' },
+  { id: 'Sufi & Qawwali', label: 'Sufi & Classical', icon: '🪔' },
+  { id: 'Sports', label: 'Sports & Live', icon: '🏏' },
+]
 
 export const byDate = (a: EventItem, b: EventItem) =>
   new Date(a.start ?? '2099-01-01').getTime() - new Date(b.start ?? '2099-01-01').getTime()
@@ -713,5 +943,5 @@ export const featuredEvents = (() => {
   })
   const punchy = pick.filter((e) => e.title.length <= 56)
   const chosen = [...punchy, ...pick.filter((e) => !punchy.includes(e))]
-  return chosen.slice(0, 4)
+  return chosen.slice(0, 6)
 })()
