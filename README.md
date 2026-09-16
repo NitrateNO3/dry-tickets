@@ -10,6 +10,7 @@ npm install
 npm run dev      # http://localhost:5173
 npm run build    # production build into dist/
 npm run preview  # serve the production build
+npm run check    # validator self-check (Node 24+)
 ```
 
 ## Stack
@@ -104,6 +105,35 @@ How it fits together:
   (list, search, filters, import), `AdminEventForm` (create / edit / delete).
 - Times in the admin form are entered in the admin's browser timezone; the public site
   displays them in Australia/Sydney.
+
+## Security
+
+The site is a static SPA; the only backend is Supabase (Postgres + Auth). Security is
+enforced in the database and by response headers, not by the browser code.
+
+| Area | How it's handled |
+|---|---|
+| Keys | Only the **publishable** key (`sb_publishable_…`) ships to browsers. It is public by design. **Never** put the secret key (`sb_secret_…`) in a `VITE_` variable, Vercel, or git. Git history was scanned: no secrets have ever been committed. |
+| Authorisation | Row-level security on `events`: anyone reads; insert/update/delete require `is_admin()`, which checks `app_metadata.role = 'admin'` in the login token. `app_metadata` can only be set server-side. Anonymous write grants and `TRUNCATE` are revoked. |
+| Field tampering | CHECK constraints on every column (https-only URLs, lengths, price 0–100,000, valid ticket availability, end ≥ start). A trigger recomputes `low`/`high` and `updated_at` server-side. |
+| Input validation | `src/lib/validate.ts` mirrors the constraints in the admin form; every input has `maxLength`. Self-check: `npm run check`. |
+| Output | React escapes all rendered text; there are no raw-HTML sinks. The public fetch selects explicit columns only. |
+| Sessions | No server, so no HttpOnly cookie: the admin token lives in `sessionStorage` (cleared when the tab closes). The CSP blocks the injected scripts that could read it. |
+| Passwords | Stored as bcrypt hashes by Supabase Auth; the app never stores passwords. Sign-ups are disabled. |
+| Login abuse | Supabase Auth rate-limits sign-in per IP; the form shows a clear message on 429 and never reveals whether an email exists. |
+| Headers | `vercel.json`: CSP, HSTS, `nosniff`, `X-Frame-Options: DENY`, Referrer-Policy, Permissions-Policy, COOP. HTTP is redirected to HTTPS by Vercel. |
+| Dependencies | `npm audit` clean; Dependabot (`.github/dependabot.yml`) opens weekly update PRs. |
+| Payments | Checkout is a mock and transmits nothing. A real integration must use a hosted payment form (e.g. Stripe Elements) — never collect or store card numbers. |
+
+One-time setup, in order:
+
+1. **Supabase → SQL editor:** run `supabase/schema.sql`, then edit the email in step 3 of
+   `supabase/security.sql` and run it. Sign out of `/admin` and back in.
+2. **Supabase → Authentication → Rate Limits:** lower sign-in attempts (≈10 per 5 minutes per IP).
+3. **GitHub → Settings → Code security** (repo admin): enable Dependabot alerts, secret
+   scanning and push protection.
+
+If the Supabase project URL changes, update `connect-src` in the CSP in `vercel.json`.
 
 ## What is mocked
 

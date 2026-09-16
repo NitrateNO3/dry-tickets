@@ -189,7 +189,7 @@ export default function EventDetail() {
                         }}
                         className="mt-6 space-y-3"
                       >
-                        <Input type="email" required placeholder="you@example.com" aria-label="Email address" autoComplete="email" />
+                        <Input type="email" required maxLength={254} placeholder="you@example.com" aria-label="Email address" autoComplete="email" />
                         <Button type="submit" loading={notify === 'sending'} className="w-full">
                           Notify me
                         </Button>

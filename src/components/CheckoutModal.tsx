@@ -112,13 +112,13 @@ export function CheckoutModal({ isOpen, onClose, event, tier, qty, subtotal, fee
                 >
                   <p className="text-sm text-muted">Tickets are emailed and sent by SMS to these details.</p>
                   <Field label="Full name" id="co-name">
-                    <Input id="co-name" required value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" />
+                    <Input id="co-name" required maxLength={120} value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" />
                   </Field>
                   <Field label="Email" id="co-email">
-                    <Input id="co-email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" />
+                    <Input id="co-email" type="email" required maxLength={254} value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" />
                   </Field>
                   <Field label="Mobile" id="co-phone">
-                    <Input id="co-phone" type="tel" required value={phone} onChange={(e) => setPhone(e.target.value)} autoComplete="tel" />
+                    <Input id="co-phone" type="tel" required maxLength={20} value={phone} onChange={(e) => setPhone(e.target.value)} autoComplete="tel" />
                   </Field>
                   <Button type="submit" size="lg" className="w-full">
                     Continue to payment

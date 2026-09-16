@@ -2,12 +2,27 @@ import { createClient } from '@supabase/supabase-js'
 import type { EventItem } from '../data/events'
 
 const url = import.meta.env.VITE_SUPABASE_URL as string | undefined
-// Supabase's publishable key is public by design (RLS guards writes). Named without "KEY"
-// because Vercel refuses to save VITE_*KEY* variables; the old name is still accepted.
+// Publishable key only (sb_publishable_…) — it ships to every browser and is safe because
+// row-level security guards writes. NEVER put the secret key (sb_secret_…) in a VITE_ variable.
+// Named without "KEY" because Vercel refuses to save VITE_*KEY* variables; the old name is still accepted.
 const key = (import.meta.env.VITE_SUPABASE_PUBLISHABLE ?? import.meta.env.VITE_SUPABASE_ANON_KEY) as string | undefined
 
-/** Null when the env vars are missing — the site then runs on the built-in seed events. */
-export const supabase = url && key ? createClient(url, key) : null
+/**
+ * Null when the env vars are missing — the site then runs on the built-in seed events.
+ * The admin session lives in sessionStorage, so it ends when the tab closes and is not shared
+ * across tabs. (No server here, so an HttpOnly cookie isn't possible; the CSP in vercel.json
+ * blocks the injected scripts that could otherwise read the token.)
+ */
+export const supabase =
+  url && key
+    ? createClient(url, key, {
+        auth: { storage: window.sessionStorage, persistSession: true, autoRefreshToken: true },
+      })
+    : null
+
+/** Columns the site reads. Explicit so nothing added to the table later is exposed by accident. */
+const EVENT_COLUMNS =
+  'slug,title,description,image,start,end,rating,rating_count,venue,street,city,metro,region,postcode,country,artists,tiers,low,high,category,presale'
 
 type Row = {
   slug: string
@@ -31,8 +46,10 @@ type Row = {
   high: number | null
   category: string
   presale: boolean
-  updated_at?: string
 }
+
+/** What the client sends. low/high and updated_at are computed by the database trigger. */
+type WriteRow = Omit<Row, 'low' | 'high'>
 
 const orUndef = <T>(v: T | null) => (v === null ? undefined : v)
 const orNull = <T>(v: T | undefined) => (v === undefined || v === '' ? null : v)
@@ -61,8 +78,7 @@ export const fromRow = (r: Row): EventItem => ({
   presale: r.presale,
 })
 
-export const toRow = (e: EventItem): Row => {
-  const prices = e.tiers.map((t) => t.price)
+export const toRow = (e: EventItem): WriteRow => {
   return {
     slug: e.slug,
     title: e.title,
@@ -81,8 +97,6 @@ export const toRow = (e: EventItem): Row => {
     country: orNull(e.country),
     artists: e.artists,
     tiers: e.tiers,
-    low: prices.length ? Math.min(...prices) : null,
-    high: prices.length ? Math.max(...prices) : null,
     category: e.category,
     presale: e.presale,
   }
@@ -94,7 +108,7 @@ const client = () => {
 }
 
 export async function fetchEvents(): Promise<EventItem[]> {
-  const { data, error } = await client().from('events').select('*')
+  const { data, error } = await client().from('events').select(EVENT_COLUMNS)
   if (error) throw error
   return (data as Row[]).map(fromRow)
 }
@@ -105,6 +119,8 @@ export async function upsertEvents(items: EventItem[]) {
 }
 
 export async function deleteEvent(slug: string) {
-  const { error } = await client().from('events').delete().eq('slug', slug)
+  // RLS doesn't raise on a blocked delete — it just matches 0 rows — so check what was removed.
+  const { data, error } = await client().from('events').delete().eq('slug', slug).select('slug')
   if (error) throw error
+  if (!data?.length) throw Object.assign(new Error('Nothing was deleted.'), { code: '42501' })
 }

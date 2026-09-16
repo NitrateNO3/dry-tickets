@@ -45,7 +45,16 @@ function Login() {
     setError(undefined)
     const { error } = await supabase!.auth.signInWithPassword({ email, password })
     setBusy(false)
-    if (error) setError(error.message)
+    if (!error) return
+    // Supabase rate-limits sign-in per IP; say so plainly. Otherwise stay generic so the
+    // form doesn't reveal whether an email has an account.
+    setError(
+      error.status === 429
+        ? 'Too many sign-in attempts. Wait a few minutes and try again.'
+        : error.status && error.status >= 500
+          ? 'Sign-in is unavailable right now. Try again shortly.'
+          : 'Email or password is incorrect.',
+    )
   }
 
   return (
@@ -55,13 +64,22 @@ function Login() {
         <p className="mt-1 text-sm text-muted">Use the account created in the Supabase dashboard.</p>
       </div>
       <Field label="Email" id="admin-email">
-        <Input id="admin-email" type="email" required autoComplete="username" value={email} onChange={(e) => setEmail(e.target.value)} />
+        <Input
+          id="admin-email"
+          type="email"
+          required
+          maxLength={254}
+          autoComplete="username"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
       </Field>
       <Field label="Password" id="admin-password">
         <Input
           id="admin-password"
           type="password"
           required
+          maxLength={128}
           autoComplete="current-password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
@@ -99,6 +117,17 @@ export default function AdminLayout() {
         <div className="skeleton mx-auto h-64 max-w-sm rounded-xl" aria-hidden />
       ) : !session ? (
         <Login />
+      ) : session.user.app_metadata?.role !== 'admin' ? (
+        // UX only — the database's row-level security is what actually refuses non-admin writes.
+        <div className="card mx-auto max-w-sm p-8 text-center">
+          <h1 className="t-h3 text-ink">This account doesn't have admin access</h1>
+          <p className="mt-2 text-sm text-muted">
+            Signed in as {session.user.email}. If the admin role was just granted, sign out and sign in again.
+          </p>
+          <Button variant="outline" onClick={() => supabase!.auth.signOut()} className="mt-6">
+            Sign out
+          </Button>
+        </div>
       ) : (
         <>
           <div className="mb-8 flex flex-wrap items-center justify-between gap-4 border-b border-line pb-6">

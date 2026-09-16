@@ -4,11 +4,20 @@ import { AUSTRALIAN_CITIES, type Artist, type EventItem, type Tier } from '../..
 import { useEvents } from '../../lib/events'
 import { deleteEvent, upsertEvents } from '../../lib/supabase'
 import { slugify } from '../../lib/slug'
+import { AVAILABILITY, LIMITS, validateEvent } from '../../lib/validate'
 import { Button, Field, Img, Input, Select, Textarea } from '../../components/Primitives'
 import { Close } from '../../components/Icons'
 
 const OTHER = '__other__'
-const AVAILABILITY = ['InStock', 'LimitedAvailability', 'SoldOut']
+
+/** Turns Supabase/Postgres errors into something an admin can act on. */
+const describe = (err: unknown) => {
+  const code = (err as { code?: string })?.code
+  if (code === '42501') return "Your account isn't allowed to change shows. Sign out and back in; if it persists, the admin role is missing."
+  if (code === '23514') return 'The database rejected a field as outside the allowed format. Check URLs are https:// and prices and lengths are within limits.'
+  if (code === '23505') return 'A show with this URL slug already exists.'
+  return err instanceof Error ? err.message : 'Something went wrong. Try again.'
+}
 
 const blank = (): EventItem => ({
   slug: '',
@@ -84,7 +93,7 @@ function PickOrType({
           <option value={OTHER}>Other…</option>
         </Select>
         {other && (
-          <Input aria-label={`${label} (other)`} value={value} onChange={(e) => onChange(e.target.value)} required={required} autoFocus />
+          <Input aria-label={`${label} (other)`} maxLength={80} value={value} onChange={(e) => onChange(e.target.value)} required={required} autoFocus />
         )}
       </div>
     </Field>
@@ -148,12 +157,18 @@ function Form({ initial, isNew }: { initial: EventItem; isNew: boolean }) {
         artists: draft.artists.filter((a) => a.name.trim()).map((a) => ({ name: a.name.trim(), image: a.image?.trim() || undefined })),
         tiers: draft.tiers.filter((t) => t.name.trim()).map((t) => ({ ...t, name: t.name.trim(), price: Number(t.price) || 0 })),
       }
+      const problem = validateEvent(clean)
+      if (problem) {
+        setError(problem)
+        setSaving(false)
+        return
+      }
       await upsertEvents([clean])
       await refresh()
       sessionStorage.setItem('admin-notice', `Saved "${clean.title}".`)
       navigate('/admin')
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err))
+      setError(describe(err))
       setSaving(false)
     }
   }
@@ -167,7 +182,7 @@ function Form({ initial, isNew }: { initial: EventItem; isNew: boolean }) {
       sessionStorage.setItem('admin-notice', `Deleted "${draft.title}".`)
       navigate('/admin')
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err))
+      setError(describe(err))
       setDeleting(false)
     }
   }
@@ -177,12 +192,13 @@ function Form({ initial, isNew }: { initial: EventItem; isNew: boolean }) {
       <div className="space-y-6">
         <Section title="Basics">
           <Field label="Title" id="title">
-            <Input id="title" required value={draft.title} onChange={(e) => setTitle(e.target.value)} />
+            <Input id="title" required maxLength={LIMITS.title} value={draft.title} onChange={(e) => setTitle(e.target.value)} />
           </Field>
           <Field label="URL slug" id="slug" hint={`Public page: /event/${draft.slug || '…'}`}>
             <Input
               id="slug"
               required
+              maxLength={LIMITS.slug}
               pattern="[a-z0-9]+(-[a-z0-9]+)*"
               title="Lowercase letters, numbers and dashes"
               value={draft.slug}
@@ -199,7 +215,7 @@ function Form({ initial, isNew }: { initial: EventItem; isNew: boolean }) {
             Presale — dates not yet announced, collect emails instead of selling tickets
           </label>
           <Field label="Description" id="description">
-            <Textarea id="description" rows={4} value={draft.description} onChange={(e) => set('description', e.target.value)} />
+            <Textarea id="description" rows={4} maxLength={LIMITS.description} value={draft.description} onChange={(e) => set('description', e.target.value)} />
           </Field>
         </Section>
 
@@ -221,20 +237,20 @@ function Form({ initial, isNew }: { initial: EventItem; isNew: boolean }) {
             required
           />
           <Field label="Venue" id="venue">
-            <Input id="venue" value={draft.venue ?? ''} onChange={(e) => set('venue', e.target.value || undefined)} />
+            <Input id="venue" maxLength={LIMITS.text} value={draft.venue ?? ''} onChange={(e) => set('venue', e.target.value || undefined)} />
           </Field>
           <Field label="Street address" id="street">
-            <Input id="street" value={draft.street ?? ''} onChange={(e) => set('street', e.target.value || undefined)} />
+            <Input id="street" maxLength={LIMITS.text} value={draft.street ?? ''} onChange={(e) => set('street', e.target.value || undefined)} />
           </Field>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <Field label="Suburb" id="city">
-              <Input id="city" value={draft.city ?? ''} onChange={(e) => set('city', e.target.value || undefined)} />
+              <Input id="city" maxLength={LIMITS.text} value={draft.city ?? ''} onChange={(e) => set('city', e.target.value || undefined)} />
             </Field>
             <Field label="State" id="region">
-              <Input id="region" value={draft.region ?? ''} onChange={(e) => set('region', e.target.value || undefined)} />
+              <Input id="region" maxLength={LIMITS.text} value={draft.region ?? ''} onChange={(e) => set('region', e.target.value || undefined)} />
             </Field>
             <Field label="Postcode" id="postcode">
-              <Input id="postcode" inputMode="numeric" value={draft.postcode ?? ''} onChange={(e) => set('postcode', e.target.value || undefined)} />
+              <Input id="postcode" maxLength={LIMITS.postcode} inputMode="numeric" value={draft.postcode ?? ''} onChange={(e) => set('postcode', e.target.value || undefined)} />
             </Field>
           </div>
         </Section>
@@ -242,9 +258,13 @@ function Form({ initial, isNew }: { initial: EventItem; isNew: boolean }) {
         <Section title="Artists">
           {draft.artists.map((a, i) => (
             <div key={i} className="grid grid-cols-[1fr_auto] gap-2 sm:grid-cols-[1fr_1fr_auto]">
-              <Input aria-label="Artist name" placeholder="Name" value={a.name} onChange={(e) => setArtist(i, { name: e.target.value })} />
+              <Input aria-label="Artist name" placeholder="Name" maxLength={LIMITS.name} value={a.name} onChange={(e) => setArtist(i, { name: e.target.value })} />
               <Input
                 aria-label="Artist image URL"
+                type="url"
+                pattern="https://.*"
+                title="Must start with https://"
+                maxLength={LIMITS.url}
                 placeholder="Image URL"
                 value={a.image ?? ''}
                 onChange={(e) => setArtist(i, { image: e.target.value })}
@@ -268,11 +288,12 @@ function Form({ initial, isNew }: { initial: EventItem; isNew: boolean }) {
         <Section title="Tickets">
           {draft.tiers.map((t, i) => (
             <div key={i} className="grid grid-cols-[1fr_auto] gap-2 sm:grid-cols-[2fr_1fr_1fr_auto]">
-              <Input aria-label="Ticket name" placeholder="e.g. General admission" value={t.name} onChange={(e) => setTier(i, { name: e.target.value })} />
+              <Input aria-label="Ticket name" placeholder="e.g. General admission" maxLength={LIMITS.name} value={t.name} onChange={(e) => setTier(i, { name: e.target.value })} />
               <Input
                 aria-label="Price in AUD"
                 type="number"
                 min={0}
+                max={LIMITS.price}
                 step="0.01"
                 placeholder="Price"
                 value={t.price}
@@ -305,7 +326,7 @@ function Form({ initial, isNew }: { initial: EventItem; isNew: boolean }) {
       <div className="space-y-6 lg:sticky lg:top-24">
         <Section title="Poster">
           <Field label="Image URL" id="image">
-            <Input id="image" type="url" required value={draft.image} onChange={(e) => set('image', e.target.value)} />
+            <Input id="image" type="url" required pattern="https://.*" title="Must start with https://" maxLength={LIMITS.url} value={draft.image} onChange={(e) => set('image', e.target.value)} />
           </Field>
           {draft.image ? (
             <Img key={draft.image} src={draft.image} alt="Poster preview" className="aspect-[460/651] rounded-lg border border-line" />
