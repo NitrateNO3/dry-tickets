@@ -1,51 +1,54 @@
 import { Link } from 'react-router-dom'
 import { Logo } from './Nav'
+import { Insta, Phone } from './Icons'
+
+const links = [
+  { to: '/events', label: 'Events' },
+  { to: '/artists', label: 'Artists' },
+  { to: '/venues', label: 'Venues' },
+  { to: '/sell', label: 'Sell tickets' },
+  { to: '/about', label: 'About' },
+  { to: '/about#contact', label: 'Contact' },
+]
 
 export function Footer() {
   return (
-    <footer className="mt-24 border-t border-line bg-surface-2 text-cream">
-      <div className="mx-auto max-w-[1400px] px-5 py-12 sm:px-8">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-8 pb-10 border-b border-line">
-          {/* Brand Info */}
-          <div className="max-w-md">
+    <footer className="mt-24 border-t border-line bg-surface">
+      <div className="wrap py-12">
+        <div className="flex flex-col gap-8 border-b border-line pb-10 md:flex-row md:items-start md:justify-between">
+          <div className="max-w-sm">
             <Logo />
-            <p className="mt-3 text-xs leading-relaxed text-muted">
-              Australia's trusted marketplace to discover and book concerts, festivals, comedy, theatre, sports and cultural events with verified e-tickets.
+            <p className="mt-4 text-sm text-muted">
+              Primary ticketing for live events across Australia and New Zealand since 2013. Tickets are issued by
+              us on behalf of the organiser — face value plus the booking fee shown at checkout.
             </p>
           </div>
 
-          {/* Core Navigation Links */}
-          <nav className="flex flex-wrap gap-x-6 gap-y-2 text-xs font-semibold text-muted">
-            <Link to="/events" className="hover:text-blue transition-colors">
-              Explore Events
-            </Link>
-            <Link to="/sell" className="hover:text-blue transition-colors">
-              Sell Tickets
-            </Link>
-            <Link to="/about" className="hover:text-blue transition-colors">
-              About
-            </Link>
-            <Link to="/about" className="hover:text-blue transition-colors">
-              Contact
-            </Link>
-            <Link to="/about" className="hover:text-blue transition-colors">
-              Terms
-            </Link>
-            <Link to="/about" className="hover:text-blue transition-colors">
-              Privacy
-            </Link>
+          <nav aria-label="Footer" className="grid grid-cols-2 gap-x-8 gap-y-3 text-sm sm:grid-cols-3">
+            {links.map((l) => (
+              <Link key={l.to} to={l.to} className="font-medium text-muted transition-colors hover:text-ink">
+                {l.label}
+              </Link>
+            ))}
           </nav>
         </div>
 
-        {/* Bottom Details & Compliance */}
-        <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-muted">
-          <p>© {new Date().getFullYear()} DryTickets Australia. All rights reserved. ABN 15 162 645 856.</p>
-
+        <div className="flex flex-col gap-4 pt-6 text-xs text-muted sm:flex-row sm:items-center sm:justify-between">
+          <p>© {new Date().getFullYear()} Dryfa Group Pty Ltd · ABN 15 162 645 856 · Prices in AUD</p>
           <div className="flex items-center gap-6">
-            <a href="tel:0452337387" className="hover:text-blue transition-colors">
-              Sydney Support: 0452 337 387
+            <a href="tel:0452337387" className="inline-flex items-center gap-2 font-medium transition-colors hover:text-ink">
+              <Phone className="h-4 w-4" />
+              0452 337 387
             </a>
-            <span>All ticket prices in Australian Dollars (AUD)</span>
+            <a
+              href="https://instagram.com/drytickets"
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-2 font-medium transition-colors hover:text-ink"
+            >
+              <Insta className="h-4 w-4" />
+              @drytickets
+            </a>
           </div>
         </div>
       </div>

@@ -905,16 +905,6 @@ export const AUSTRALIAN_CITIES: CityMeta[] = [
   },
 ]
 
-export const AUSTRALIAN_GENRES = [
-  { id: 'all', label: 'All Events', icon: '✨' },
-  { id: 'Concert', label: 'Concerts & Music', icon: '🎵' },
-  { id: 'Comedy', label: 'Stand-up Comedy', icon: '🎭' },
-  { id: 'Festival', label: 'Festivals & Club Nights', icon: '🪩' },
-  { id: 'Theatre', label: 'Theatre & Arts', icon: '🏛️' },
-  { id: 'Sufi & Qawwali', label: 'Sufi & Classical', icon: '🪔' },
-  { id: 'Sports', label: 'Sports & Live', icon: '🏏' },
-]
-
 export const byDate = (a: EventItem, b: EventItem) =>
   new Date(a.start ?? '2099-01-01').getTime() - new Date(b.start ?? '2099-01-01').getTime()
 

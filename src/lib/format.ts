@@ -49,22 +49,3 @@ export const urgency = (iso?: string) => {
 }
 
 export const cx = (...parts: Array<string | false | null | undefined>) => parts.filter(Boolean).join(' ')
-
-/**
- * Tasteful Australian entertainment category color system:
- * Music: Blue (#4F8CFF)
- * Comedy: Purple (#7C6DFF)
- * Sports: Cyan (#36D9D2)
- * Theatre: Violet (#8B7CFF)
- * Family: Soft blue
- * Nightlife / Festivals: Indigo
- */
-export const getCategoryBadge = (_category?: string) => {
-  return {
-    text: 'text-blue',
-    bg: 'bg-blue-light',
-    border: 'border-blue/20',
-    pill: 'text-blue bg-blue-light border border-blue/20',
-    tone: 'blue' as const,
-  }
-}

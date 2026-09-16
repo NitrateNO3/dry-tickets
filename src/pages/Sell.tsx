@@ -1,283 +1,208 @@
 import { useState } from 'react'
-import { Button, Eyebrow, Reveal, SectionHead } from '../components/Primitives'
+import { Button, Field, Input, Meta, Reveal, SectionHead, Textarea } from '../components/Primitives'
 import { Arrow, Bolt, Check, Phone, Pin, Shield, Ticket } from '../components/Icons'
 
 const services = [
   {
     Icon: Ticket,
-    title: 'Online & offline ticketing',
-    body: 'Sell Australia-wide from your own event page, plus over-the-counter and agent sales for the audience that still pays cash.',
+    title: 'Online and counter sales',
+    body: 'Your own event page for online sales, plus over-the-counter and agent sales for buyers who pay in cash.',
   },
   {
     Icon: Pin,
-    title: 'Seating & seat maps',
-    body: 'Reserved seating, allocated tables and GA zones — mapped to your venue and priced by tier.',
+    title: 'Seating maps',
+    body: 'Reserved seats, allocated tables and general admission zones, mapped to your venue and priced by tier.',
   },
   {
     Icon: Bolt,
-    title: 'Barcode scanning & printing',
-    body: 'Thermal or standard ticket printing, scanners on the door and live entry counts through the night.',
+    title: 'Scanning and printing',
+    body: 'Printed or e-tickets, scanners on the door and live entry counts through the night.',
   },
   {
     Icon: Shield,
-    title: 'Marketing that fills rooms',
-    body: 'Paid social across Facebook and Instagram to 200,000+ registered desi ticket buyers, plus EDM campaigns.',
+    title: 'Promotion',
+    body: 'Paid social on Facebook and Instagram and email campaigns to our registered ticket buyers.',
   },
 ]
 
 const steps = [
-  { n: '01', title: 'Tell us about the show', body: 'Artist, venue, date, capacity. A quick call is usually enough.' },
-  { n: '02', title: 'We build your event page', body: 'Poster design, seat map, ticket tiers and payment setup — live within 48 hours.' },
-  { n: '03', title: 'We market and sell', body: 'Campaigns go out to our audience while you focus on production.' },
-  { n: '04', title: 'Door, scan, settle', body: 'Scanners on the night, live reporting, funds settled after the event.' },
+  { n: '1', title: 'Tell us about the show', body: 'Artist, venue, date and capacity. A short call is usually enough.' },
+  { n: '2', title: 'We build the event page', body: 'Poster, seat map, ticket tiers and payments, ready for your sign-off.' },
+  { n: '3', title: 'Tickets go on sale', body: 'Campaigns go out to our audience while you focus on production.' },
+  { n: '4', title: 'Doors, scanning, settlement', body: 'Scanners on the night, live reporting, and funds settled after the event.' },
 ]
 
 const stats = [
   { value: '800+', label: 'Events ticketed' },
-  { value: '350+', label: 'Organisers served' },
+  { value: '350+', label: 'Organisers' },
   { value: '320+', label: 'Venues' },
-  { value: '13 yrs', label: 'In market' },
+  { value: '2013', label: 'Founded' },
 ]
 
 export default function Sell() {
-  const [sent, setSent] = useState(false)
+  const [status, setStatus] = useState<'idle' | 'sending' | 'sent'>('idle')
 
   return (
-    <div className="relative bg-white pb-24">
-      <div className="relative mx-auto max-w-[1400px] px-5 pt-32 sm:px-8 lg:pt-36">
-        {/* Hero */}
-        <div className="max-w-3xl">
-          <Eyebrow className="mb-4">For organisers & promoters</Eyebrow>
-          <h1 className="text-[clamp(2.4rem,5.5vw,4.4rem)] font-extrabold text-cream tracking-tight">
-            You bring the artist.{' '}
-            <span className="text-blue">We'll fill the room.</span>
-          </h1>
-          <p className="mt-5 max-w-xl text-[16px] leading-relaxed text-muted">
-            Dry Tickets has been the box office behind desi live entertainment in Australia since
-            2013 — ticketing, seat maps, scanning, printing, design and paid social under one roof.
-          </p>
-          <div className="mt-8 flex flex-wrap gap-3">
-            <Button href="#enquire" size="lg" variant="primary">
-              Get a quote
-              <Arrow className="h-4 w-4" />
-            </Button>
-            <Button href="tel:0452337387" variant="outline" size="lg">
-              <Phone className="h-4 w-4" />
-              0452 337 387
-            </Button>
+    <div className="wrap page-top">
+      <Meta
+        title="Sell tickets"
+        description="Ticketing, seating maps, door scanning and promotion for event organisers in Australia and New Zealand. Send an enquiry or call 0452 337 387."
+      />
+
+      <div className="max-w-3xl">
+        <span className="t-label text-blue">For organisers</span>
+        <h1 className="t-h1 mt-3 text-ink">Ticketing, seating and door scanning for your event</h1>
+        <p className="t-lede mt-4 max-w-xl">
+          Dry Tickets has run box offices for promoters in Australia since 2013 — sales, seat maps, scanning, printing
+          and promotion, handled by one team.
+        </p>
+        <div className="mt-8 flex flex-wrap gap-3">
+          <Button href="#enquire" size="lg">
+            Send an enquiry
+            <Arrow className="h-4 w-4" />
+          </Button>
+          <Button href="tel:0452337387" variant="outline" size="lg">
+            <Phone className="h-4 w-4" />
+            0452 337 387
+          </Button>
+        </div>
+      </div>
+
+      <div className="mt-16 grid grid-cols-2 gap-4 lg:grid-cols-4">
+        {stats.map((s) => (
+          <div key={s.label} className="rounded-xl border border-line bg-surface p-6">
+            <p className="t-h2 text-ink">{s.value}</p>
+            <p className="mt-1 text-sm text-muted">{s.label}</p>
           </div>
-        </div>
+        ))}
+      </div>
 
-        {/* Stats */}
-        <div className="mt-16 grid grid-cols-2 gap-4 lg:grid-cols-4">
-          {stats.map((s, i) => (
-            <Reveal key={s.label} delay={0.05 * i}>
-              <div className="rounded-2xl bg-surface-2 p-6 border border-line">
-                <p className="text-[clamp(1.8rem,3.4vw,2.6rem)] font-black tracking-tight text-cream">
-                  {s.value}
-                </p>
-                <p className="mt-1 text-xs font-semibold text-muted">{s.label}</p>
+      <section className="section">
+        <Reveal>
+          <SectionHead eyebrow="What we handle" title="The whole box office, not just checkout" />
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            {services.map((s) => (
+              <div key={s.title} className="card p-6">
+                <span className="grid h-10 w-10 place-items-center rounded-lg bg-blue-light text-blue">
+                  <s.Icon className="h-5 w-5" />
+                </span>
+                <h3 className="t-h3 mt-4 text-ink">{s.title}</h3>
+                <p className="mt-2 text-muted">{s.body}</p>
               </div>
-            </Reveal>
-          ))}
-        </div>
-
-        {/* Services */}
-        <section className="pt-32">
-          <Reveal>
-            <SectionHead
-              eyebrow="What we handle"
-              title="A full box office,"
-              accent="not just a checkout"
-            />
-          </Reveal>
-          <div className="grid gap-5 md:grid-cols-2">
-            {services.map((s, i) => (
-              <Reveal key={s.title} delay={0.06 * i}>
-                <div className="h-full rounded-3xl bg-surface p-8 hairline transition-colors duration-300 hover:bg-surface-2">
-                  <span className="grid h-12 w-12 place-items-center rounded-xl bg-blue/15 text-blue-bright">
-                    <s.Icon className="h-5 w-5" />
-                  </span>
-                  <h3 className="mt-6 text-[19px] font-bold text-cream">{s.title}</h3>
-                  <p className="mt-3 text-[14.5px] leading-relaxed text-muted">{s.body}</p>
-                </div>
-              </Reveal>
             ))}
           </div>
-        </section>
+        </Reveal>
+      </section>
 
-        {/* Process */}
-        <section className="pt-32">
-          <Reveal>
-            <SectionHead eyebrow="How it works" title="From idea to" accent="doors open" />
-          </Reveal>
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {steps.map((s, i) => (
-              <Reveal key={s.n} delay={0.07 * i}>
-                <div className="relative h-full rounded-3xl bg-surface p-7 hairline">
-                  <span className="font-serif text-[2.6rem] italic leading-none text-gradient">
-                    {s.n}
-                  </span>
-                  <h3 className="mt-5 text-[16.5px] font-bold text-cream">{s.title}</h3>
-                  <p className="mt-2.5 text-[14px] leading-relaxed text-muted">{s.body}</p>
-                </div>
-              </Reveal>
+      <section className="section">
+        <Reveal>
+          <SectionHead eyebrow="How it works" title="From first call to doors open" />
+          <ol className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {steps.map((s) => (
+              <li key={s.n} className="card p-6">
+                <span className="grid h-8 w-8 place-items-center rounded-lg bg-blue text-sm font-semibold text-white">{s.n}</span>
+                <h3 className="mt-4 text-base font-semibold text-ink">{s.title}</h3>
+                <p className="mt-2 text-sm text-muted">{s.body}</p>
+              </li>
             ))}
-          </div>
-        </section>
+          </ol>
+        </Reveal>
+      </section>
 
-        {/* Enquiry form */}
-        <section id="enquire" className="scroll-mt-28 pt-32">
-          <div className="overflow-hidden rounded-4xl bg-surface hairline">
-            <div className="grid lg:grid-cols-[0.95fr_1.05fr]">
-              <div className="relative border-b border-line p-8 sm:p-12 lg:border-b-0 lg:border-r">
-                <Eyebrow className="mb-5">Let's talk</Eyebrow>
-                <h2 className="text-[clamp(1.8rem,3.6vw,2.8rem)] font-extrabold">
-                  Tell us about your event
-                </h2>
-                <p className="mt-4 text-[15px] leading-relaxed text-muted">
-                  We'll come back within one business day with pricing, timelines and a plan for
-                  getting your show in front of the right audience.
-                </p>
+      <section id="enquire" className="section scroll-mt-16">
+        <div className="card grid grid-cols-1 overflow-hidden lg:grid-cols-2">
+          <div className="border-b border-line p-8 sm:p-12 lg:border-b-0 lg:border-r">
+            <span className="t-label text-blue">Enquire</span>
+            <h2 className="t-h2 mt-3 text-ink">Tell us about your event</h2>
+            <p className="mt-4 text-muted">
+              We reply within one business day with pricing, timelines and a sales plan for your show.
+            </p>
 
-                <ul className="mt-9 space-y-3.5">
-                  {[
-                    'No setup fee — we earn on tickets sold',
-                    'Event page live within 48 hours',
-                    'Dedicated account manager on the night',
-                    'Settlement within 5 business days',
-                  ].map((p) => (
-                    <li key={p} className="flex items-start gap-3 text-[14.5px] text-cream/85">
-                      <span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-mint/15 text-mint">
-                        <Check className="h-3 w-3" />
-                      </span>
-                      {p}
-                    </li>
-                  ))}
-                </ul>
+            <ul className="mt-8 space-y-3">
+              {[
+                'No setup fee — we earn on tickets sold',
+                'Event page live within 48 hours',
+                'Account manager on the night',
+                'Settlement within 5 business days',
+              ].map((p) => (
+                <li key={p} className="flex items-start gap-3 text-ink">
+                  <span className="mt-1 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-success-light text-success">
+                    <Check className="h-3 w-3" />
+                  </span>
+                  {p}
+                </li>
+              ))}
+            </ul>
 
-                <div className="mt-10 border-t border-line pt-7">
-                  <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-faint">
-                    Or reach us directly
-                  </p>
-                  <a
-                    href="tel:0452337387"
-                    className="mt-3 inline-flex items-center gap-2.5 text-[17px] font-bold text-cream transition-colors hover:text-blue-bright"
-                  >
-                    <Phone className="h-4 w-4 text-blue" />
-                    0452 337 387
-                  </a>
-                  <p className="mt-1.5 text-[12.5px] text-faint">
-                    Blacktown, NSW · Mon–Fri 9:00am – 5:30pm AEST
-                  </p>
-                </div>
-              </div>
-
-              <div className="p-8 sm:p-12">
-                {sent ? (
-                  <div className="flex h-full min-h-[380px] flex-col items-center justify-center text-center">
-                    <span className="grid h-16 w-16 place-items-center rounded-full bg-mint/15 text-mint">
-                      <Check className="h-7 w-7" />
-                    </span>
-                    <h3 className="mt-6 text-2xl font-extrabold text-cream">Enquiry received</h3>
-                    <p className="mt-3 max-w-sm text-[14.5px] leading-relaxed text-muted">
-                      Thanks — we'll be in touch within one business day. For anything urgent, call
-                      0452 337 387.
-                    </p>
-                    <Button variant="outline" onClick={() => setSent(false)} className="mt-8">
-                      Send another
-                    </Button>
-                  </div>
-                ) : (
-                  <form
-                    onSubmit={(e) => {
-                      e.preventDefault()
-                      setSent(true)
-                    }}
-                    className="space-y-5"
-                  >
-                    <div className="grid gap-5 sm:grid-cols-2">
-                      <Field label="Your name" name="name" placeholder="Ravi Sharma" required />
-                      <Field
-                        label="Email"
-                        name="email"
-                        type="email"
-                        placeholder="you@company.com"
-                        required
-                      />
-                    </div>
-                    <div className="grid gap-5 sm:grid-cols-2">
-                      <Field label="Phone" name="phone" type="tel" placeholder="04XX XXX XXX" />
-                      <Field label="Event name" name="event" placeholder="Artist / show title" required />
-                    </div>
-                    <div className="grid gap-5 sm:grid-cols-2">
-                      <Field label="City" name="city" placeholder="Sydney" />
-                      <Field label="Expected capacity" name="capacity" placeholder="1,200" />
-                    </div>
-
-                    <div>
-                      <label
-                        htmlFor="message"
-                        className="mb-2 block text-[11px] font-bold uppercase tracking-[0.18em] text-faint"
-                      >
-                        Tell us more
-                      </label>
-                      <textarea
-                        id="message"
-                        name="message"
-                        rows={4}
-                        placeholder="Venue, proposed dates, ticket tiers, anything else we should know…"
-                        className="w-full resize-none rounded-2xl bg-white px-5 py-4 text-[14px] text-cream placeholder:text-muted border border-[#D0D5DD] focus:outline-none focus:border-blue focus:ring-2 focus:ring-blue-light"
-                      />
-                    </div>
-
-                    <Button type="submit" size="lg" variant="primary" className="w-full">
-                      Send enquiry
-                      <Arrow className="h-4 w-4" />
-                    </Button>
-                    <p className="text-center text-[12px] text-muted">
-                      We reply within one business day.
-                    </p>
-                  </form>
-                )}
-              </div>
+            <div className="mt-10 border-t border-line pt-6">
+              <p className="t-label text-faint">Or call us</p>
+              <a href="tel:0452337387" className="mt-3 inline-flex items-center gap-2 text-lg font-semibold text-ink hover:text-blue">
+                <Phone className="h-5 w-5 text-blue" />
+                0452 337 387
+              </a>
+              <p className="mt-1 text-sm text-muted">Blacktown, NSW · Mon–Fri 9:00am – 5:30pm AEST</p>
             </div>
           </div>
-        </section>
-      </div>
-    </div>
-  )
-}
 
-function Field({
-  label,
-  name,
-  type = 'text',
-  placeholder,
-  required,
-}: {
-  label: string
-  name: string
-  type?: string
-  placeholder?: string
-  required?: boolean
-}) {
-  return (
-    <div>
-      <label
-        htmlFor={name}
-        className="mb-1.5 block text-xs font-bold text-cream"
-      >
-        {label}
-      </label>
-      <input
-        id={name}
-        name={name}
-        type={type}
-        required={required}
-        placeholder={placeholder}
-        className="h-11 w-full rounded-xl bg-white px-4 text-sm text-cream placeholder:text-muted border border-[#D0D5DD] focus:outline-none focus:border-blue focus:ring-2 focus:ring-blue-light"
-      />
+          <div className="p-8 sm:p-12">
+            {status === 'sent' ? (
+              <div className="flex h-full min-h-96 flex-col items-center justify-center text-center">
+                <span className="grid h-12 w-12 place-items-center rounded-full bg-success-light text-success">
+                  <Check className="h-6 w-6" />
+                </span>
+                <h3 className="t-h3 mt-4 text-ink">Enquiry received</h3>
+                <p className="mt-2 max-w-sm text-muted">
+                  We'll reply within one business day. For anything urgent, call 0452 337 387.
+                </p>
+                <Button variant="outline" onClick={() => setStatus('idle')} className="mt-8">
+                  Send another enquiry
+                </Button>
+              </div>
+            ) : (
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault()
+                  setStatus('sending')
+                  // ponytail: mocked — post to the enquiry endpoint.
+                  setTimeout(() => setStatus('sent'), 800)
+                }}
+                className="space-y-4"
+              >
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <Field label="Your name" id="name">
+                    <Input id="name" name="name" required autoComplete="name" />
+                  </Field>
+                  <Field label="Email" id="email">
+                    <Input id="email" name="email" type="email" required autoComplete="email" />
+                  </Field>
+                </div>
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <Field label="Phone" id="phone">
+                    <Input id="phone" name="phone" type="tel" autoComplete="tel" />
+                  </Field>
+                  <Field label="Event or artist" id="event">
+                    <Input id="event" name="event" required />
+                  </Field>
+                </div>
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <Field label="City" id="city">
+                    <Input id="city" name="city" />
+                  </Field>
+                  <Field label="Expected capacity" id="capacity">
+                    <Input id="capacity" name="capacity" inputMode="numeric" />
+                  </Field>
+                </div>
+                <Field label="Anything else" id="message" hint="Venue, proposed dates, ticket tiers.">
+                  <Textarea id="message" name="message" rows={4} />
+                </Field>
+                <Button type="submit" size="lg" loading={status === 'sending'} className="w-full">
+                  Send enquiry
+                </Button>
+              </form>
+            )}
+          </div>
+        </div>
+      </section>
     </div>
   )
 }

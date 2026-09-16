@@ -17,24 +17,27 @@ npm run preview  # serve the production build
 - **React 19 + TypeScript + Vite**
 - **Tailwind CSS v4** (via `@tailwindcss/vite`) — design tokens live in `src/index.css` under `@theme`
 - **React Router** for routing
-- **Framer Motion** for the hero rotation, scroll reveals and list transitions
+- **Framer Motion** for section reveals, dropdowns and modals
 
-## Design direction
+## Design system
 
-The content is the strongest asset the business has — 460×651 gig posters, densely
-designed, in saturated colour. The redesign is built around that:
+Everything is defined once in `src/index.css` (`@theme` tokens + `@utility` classes) and
+`src/components/Primitives.tsx`. New UI should compose these rather than add values.
 
-- **Poster-first.** Cards show artwork at its native ratio with nothing layered over
-  it except a date chip. Metadata sits in a clean block underneath, so busy posters
-  stay readable.
-- **Cinematic dark ground.** A near-black ink base (`#07060b`) with a warm cream text
-  colour, so the posters supply the colour rather than competing with the chrome.
-- **The poster paints the page.** Hero and event-detail backdrops are the current
-  poster, scaled and blurred — every event brings its own palette.
-- **Saffron → ember accent** for actions, a gold/mint/violet supporting set for
-  status. Editorial italic serif (Instrument Serif) against a tight grotesk
-  (Plus Jakarta Sans) for headline contrast.
-- Film grain overlay, glass nav, reduced-motion support throughout.
+- **Spacing** — Tailwind's 4pt scale, whole steps only (no `.5`). Layout utilities:
+  `wrap` (1400px container), `page-top`, `section`.
+- **Type** — Plus Jakarta Sans, weights 400/500/600/700. Ramp: `t-display`, `t-h1`,
+  `t-h2`, `t-h3`, `t-lede`, `t-label`; body 15px, `text-sm`, `text-xs`.
+- **Colour** — `ink` / `muted` / `faint` text, `surface` / `line` neutrals, one `blue`
+  accent, `success` / `warning` / `danger` for status. No other hues.
+- **Radius** — `rounded-md` tags · `rounded-lg` buttons, inputs, chips · `rounded-xl`
+  cards, dropdowns, modals.
+- **Shadow** — `shadow-xs` resting · `shadow-md` hover and dropdown · `shadow-xl` modal.
+- **Cards** — `card` + `card-hover` (2px lift, stronger border). No other hover recipes.
+- **Motion** — one `Reveal` fade-up per section; no per-item stagger or decorative movement.
+- **Loading** — `Button loading`, `Img` (skeleton until loaded). Every async action shows one.
+- **Meta** — every page renders `<Meta title description />`, which updates the
+  title, description and Open Graph tags from `index.html` in place.
 
 ## Structure
 
@@ -43,8 +46,8 @@ src/
   data/events.ts      29 real events derived from the live site's schema.org feed
   lib/format.ts       date/money formatting (Australia/Sydney timezone)
   lib/copy.ts         rewrites the boilerplate source descriptions into real sentences
-  components/         Nav, Footer, Hero, PosterCard, Rail, Marquee, Primitives, Icons
-  pages/              Home, Events, EventDetail, Artists, Sell, About, NotFound
+  components/         Nav, Footer, Hero, PosterCard, CheckoutModal, Primitives, Icons
+  pages/              Home, Events, EventDetail, Artists, Venues, Sell, About, NotFound
 ```
 
 ## Data
@@ -63,9 +66,9 @@ Two things are derived rather than copied:
 
 ## What is mocked
 
-This is a front-end redesign. Checkout, newsletter signup and the organiser enquiry
-form are wired to state but post nowhere; the venue map is a styled placeholder
-rather than a paid map embed.
+This is a front-end redesign. Checkout, presale signup and the organiser enquiry
+form show a loading state and a confirmation but post nowhere (search for
+`ponytail: mocked`).
 
 ## ⚠️ Placeholder copy — not Dry Tickets' real terms
 
@@ -82,7 +85,6 @@ with real figures before this goes anywhere near production:
 | "Settlement within 5 business days" | `src/pages/Sell.tsx` |
 | The five FAQs, incl. the refund/exchange answer | `src/pages/About.tsx` |
 | The 2013–2026 company timeline | `src/pages/About.tsx` |
-| Facebook and YouTube handles (only Instagram is confirmed) | `src/components/Footer.tsx`, `src/pages/About.tsx` |
 
 The company's real FAQ, refund and terms pages exist on drytickets.com.au and were
 not consulted when writing the above.

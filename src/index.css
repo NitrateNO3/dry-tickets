@@ -1,51 +1,45 @@
 @import 'tailwindcss';
 
+/*
+ * Design tokens. Everything on the site draws from this block:
+ *  - one font family, weights 400/500/600/700
+ *  - a 4pt spacing scale (Tailwind's default — never use .5 steps)
+ *  - three radii: md (controls/tags), lg (buttons/inputs), xl (cards/panels)
+ *  - three shadows: xs (resting), md (hover/dropdown), xl (modal)
+ *  - one accent (blue) plus three status colours
+ */
 @theme {
   --font-sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --font-serif: 'Instrument Serif', ui-serif, Georgia, serif;
 
-  /* Primary Background: Clean White */
-  --color-ink: #ffffff;
-  --color-ink-2: #f8fafc;
-
-  /* Surface / Cards: White and clean light surfaces */
-  --color-surface: #ffffff;
-  --color-surface-2: #f8fafc;
-  --color-surface-3: #f1f5f9;
-
-  /* Borders: Subtle borders */
-  --color-line: #e2e8f0;
-  --color-line-cool: #e2e8f0;
-  --color-line-light: #f1f5f9;
-
-  /* Text Colors */
-  --color-cream: #0f172a;
-  --color-cream-soft: #475569;
+  /* Text */
+  --color-ink: #0f172a;
   --color-muted: #475569;
   --color-faint: #64748b;
 
-  /* Primary Brand/Action Color: Clean Modern Blue */
+  /* Surfaces */
+  --color-surface: #f8fafc;
+  --color-surface-2: #f1f5f9;
+  --color-line: #e2e8f0;
+  --color-line-strong: #cbd5e1;
+
+  /* Accent */
   --color-blue: #2563eb;
-  --color-blue-bright: #3b82f6;
   --color-blue-dark: #1d4ed8;
   --color-blue-light: #eff6ff;
 
-  /* Secondary / Utility Colors */
-  --color-violet: #4f46e5;
-  --color-violet-soft: #6366f1;
-  --color-purple: #4338ca;
-  --color-cyan: #0284c7;
+  /* Status */
+  --color-success: #047857;
+  --color-success-light: #ecfdf5;
+  --color-danger: #be123c;
+  --color-danger-light: #fff1f2;
+  --color-warning: #b45309;
+  --color-warning-light: #fffbeb;
 
-  /* Status Colors */
-  --color-mint: #059669;
-  --color-rose: #e11d48;
-  --color-gold: #d97706;
+  --shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.05);
+  --shadow-md: 0 6px 20px -6px rgba(15, 23, 42, 0.12);
+  --shadow-xl: 0 24px 48px -12px rgba(15, 23, 42, 0.25);
 
-  /* Legacy aliases mapped to clean blue */
-  --color-saffron: #2563eb;
-  --color-coral: #2563eb;
-
-  --radius-4xl: 2rem;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 @layer base {
@@ -54,119 +48,131 @@
   }
 
   html {
-    scroll-behavior: smooth;
     -webkit-text-size-adjust: 100%;
   }
 
   body {
-    background-color: var(--color-ink);
-    color: var(--color-cream);
+    background-color: #ffffff;
+    color: var(--color-ink);
     font-family: var(--font-sans);
+    font-size: 0.9375rem;
+    line-height: 1.6;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
     overflow-x: hidden;
   }
 
   ::selection {
-    background: #eff6ff;
-    color: #1d4ed8;
+    background: var(--color-blue-light);
+    color: var(--color-blue-dark);
   }
 
   h1, h2, h3, h4 {
-    letter-spacing: -0.03em;
-    line-height: 1.1;
     text-wrap: balance;
   }
 
-  ::-webkit-scrollbar { width: 9px; height: 9px; }
-  ::-webkit-scrollbar-track { background: #f7f8fa; }
-  ::-webkit-scrollbar-thumb {
-    background: #d1d5db;
-    border-radius: 99px;
-    border: 2px solid #f7f8fa;
-  }
-  ::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-track { background: var(--color-surface); }
+  ::-webkit-scrollbar-thumb { background: var(--color-line-strong); border-radius: 8px; }
 
   :focus-visible {
     outline: 2px solid var(--color-blue);
     outline-offset: 2px;
-    border-radius: 6px;
+  }
+
+  input, select, textarea, button {
+    font: inherit;
   }
 }
 
-@layer utilities {
-  /* Simple clean text emphasis */
-  .text-gradient {
-    color: var(--color-blue);
-  }
+/* Type ramp — the only heading sizes used on the site. */
+@utility t-display {
+  font-size: clamp(2.5rem, 5vw, 3.75rem);
+  line-height: 1.05;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+@utility t-h1 {
+  font-size: clamp(2rem, 4vw, 3rem);
+  line-height: 1.1;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+}
+@utility t-h2 {
+  font-size: clamp(1.5rem, 2.6vw, 2rem);
+  line-height: 1.2;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+@utility t-h3 {
+  font-size: 1.125rem;
+  line-height: 1.4;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+@utility t-lede {
+  font-size: 1.125rem;
+  line-height: 1.6;
+  color: var(--color-muted);
+}
+@utility t-label {
+  font-size: 0.75rem;
+  line-height: 1.25;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
 
-  .accent-bg {
-    background-color: var(--color-blue);
-  }
+/* Layout */
+@utility wrap {
+  margin-inline: auto;
+  max-width: 1400px;
+  padding-inline: 1rem;
+  @media (width >= 40rem) { padding-inline: 2rem; }
+}
+@utility section {
+  padding-top: 5rem;
+  @media (width >= 64rem) { padding-top: 6rem; }
+}
+@utility page-top {
+  padding-top: 7rem;
+  @media (width >= 64rem) { padding-top: 8rem; }
+}
 
-  .cta-gradient {
-    background-color: var(--color-blue);
-  }
-
-  .blue-glow {
-    box-shadow: 0 4px 12px -2px rgba(37, 99, 235, 0.12);
-  }
-
-  .violet-glow {
-    box-shadow: 0 4px 12px -2px rgba(79, 70, 229, 0.10);
-  }
-
-  .glass {
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border-bottom: 1px solid var(--color-line);
-  }
-
-  .hairline {
-    border: 1px solid var(--color-line);
-  }
-
-  .hairline-cool {
-    border: 1px solid var(--color-line);
-  }
-
-  .no-scrollbar::-webkit-scrollbar { display: none; }
-  .no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
-
-  .edge-fade {
-    -webkit-mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent);
-    mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent);
-  }
-
-  .marquee-track {
-    animation: marquee 42s linear infinite;
-  }
-
-  .glass-card {
-    background: #ffffff;
-    border: 1px solid var(--color-line);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-  }
-
-  .card-hover {
-    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
-  }
-  .card-hover:hover {
+/* Cards share one hover: 2px lift, stronger border, md shadow. */
+@utility card {
+  background: #ffffff;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-xs);
+}
+@utility card-hover {
+  transition: transform 200ms var(--ease-out), box-shadow 200ms var(--ease-out), border-color 200ms var(--ease-out);
+  &:hover {
     transform: translateY(-2px);
-    border-color: #cbd5e1;
-    box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.08);
+    border-color: var(--color-line-strong);
+    box-shadow: var(--shadow-md);
   }
 }
 
-@keyframes marquee {
-  from { transform: translateX(0); }
-  to { transform: translateX(-50%); }
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar { display: none; }
 }
 
-@keyframes float-slow {
-  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
-  50% { transform: translate3d(0, -2%, 0) scale(1.02); }
+@utility edge-fade {
+  mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent);
+}
+
+/* Image skeleton: shimmer until the <img> reports load. */
+@utility skeleton {
+  background: linear-gradient(90deg, var(--color-surface-2) 25%, var(--color-surface) 50%, var(--color-surface-2) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s linear infinite;
+}
+@keyframes shimmer {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -174,6 +180,5 @@
     animation-duration: 0.001ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
-    scroll-behavior: auto !important;
   }
 }

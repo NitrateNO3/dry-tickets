@@ -1,154 +1,101 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { AUSTRALIAN_CITIES, type EventItem } from '../data/events'
-import { Button } from './Primitives'
+import { AUSTRALIAN_CITIES, categories, liveEvents } from '../data/events'
+import { Button, Input, inputCls } from './Primitives'
 import { ChevronDown, Pin, Search } from './Icons'
 
-export function Hero({ featured: _featured = [] }: { featured?: EventItem[] } = {}) {
+const ALL = 'All Australia'
+
+export function Hero() {
   const [q, setQ] = useState('')
-  const [city, setCity] = useState('All Australia')
+  const [city, setCity] = useState(ALL)
   const navigate = useNavigate()
 
-  const handleSearch = (e: React.FormEvent) => {
+  const popular = categories.filter((c) => liveEvents.filter((e) => e.category === c).length >= 2)
+
+  const search = (e: React.FormEvent) => {
     e.preventDefault()
     const params = new URLSearchParams()
     if (q.trim()) params.set('q', q.trim())
-    if (city !== 'All Australia') params.set('city', city)
-    navigate(`/events${params.toString() ? `?${params.toString()}` : ''}`)
-  }
-
-  const handlePopularSearch = (term: string) => {
-    navigate(`/events?category=${encodeURIComponent(term)}`)
+    if (city !== ALL) params.set('city', city)
+    navigate(`/events${params.size ? `?${params}` : ''}`)
   }
 
   return (
-    <section className="relative min-h-[560px] sm:min-h-[620px] lg:min-h-[660px] w-full overflow-hidden bg-white border-b border-line">
-      {/* 1. Photographic live-event background */}
-      <div className="absolute inset-0 z-0">
+    <section className="relative overflow-hidden border-b border-line bg-white">
+      <div className="absolute inset-0">
         <img
           src="/hero-concert.jpg"
-          alt="Australian live concert crowd and stage lights"
+          alt=""
           fetchPriority="high"
-          className="h-full w-full object-cover object-[center_right] sm:object-right"
+          className="h-full w-full object-cover object-right"
         />
-
-        {/* Subtle white/light gradient overlay on the LEFT side so text remains highly readable */}
-        <div className="absolute inset-0 bg-gradient-to-r from-white via-white/95 sm:via-white/90 md:via-white/80 md:to-white/10 to-white/50" />
-
-        {/* Soft bottom blend to transition smoothly into the white page background */}
-        <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-white to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-r from-white via-white/90 to-white/40 md:to-white/10" />
       </div>
 
-      {/* 2. Foreground Hero Content */}
-      <div className="relative z-10 mx-auto max-w-[1400px] px-5 sm:px-8 pt-32 pb-16 sm:pt-40 sm:pb-24 lg:pt-44 lg:pb-28">
-        <div className="max-w-2xl lg:max-w-3xl">
-          {/* Trust badge */}
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4 }}
-            className="inline-flex items-center gap-2 rounded-full bg-white/95 backdrop-blur-xs px-3.5 py-1 text-xs font-semibold text-blue border border-line shadow-xs"
-          >
-            <span className="flex h-2 w-2 rounded-full bg-blue" />
-            <span>Australia's Trusted Live Event Marketplace</span>
-          </motion.div>
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+        className="wrap relative pb-16 pt-32 sm:pb-20 sm:pt-40"
+      >
+        <div className="max-w-2xl">
+          <h1 className="t-display text-ink">Official tickets for live events across Australia.</h1>
+          <p className="t-lede mt-4 max-w-xl">
+            Concerts, comedy, festivals and cultural shows sold by the organisers themselves — face-value
+            pricing, instant e-tickets, support in Sydney.
+          </p>
 
-          {/* Hero Headline */}
-          <motion.h1
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.05 }}
-            className="mt-5 text-[clamp(2.5rem,5.4vw,4.4rem)] font-black leading-[1.08] tracking-tight text-cream text-balance"
-          >
-            Find your next<br className="hidden sm:inline" />{' '}
-            <span className="text-blue">live experience.</span>
-          </motion.h1>
-
-          {/* Supporting Text */}
-          <motion.p
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-            className="mt-4 text-[clamp(1.05rem,1.8vw,1.25rem)] leading-relaxed text-muted max-w-xl"
-          >
-            Discover concerts, festivals, comedy, theatre, sports and more across Australia.
-          </motion.p>
-
-          {/* Large White Search Container */}
-          <motion.div
-            initial={{ opacity: 0, y: 18 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.15 }}
-            className="mt-8 max-w-2xl"
-          >
-            <form
-              onSubmit={handleSearch}
-              className="rounded-2xl sm:rounded-full bg-white p-2.5 sm:p-2 border border-line shadow-md shadow-slate-200/60 transition-all focus-within:border-blue focus-within:ring-2 focus-within:ring-blue-light"
-            >
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-                {/* Search input field */}
-                <div className="relative flex-1">
-                  <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-faint" />
-                  <input
-                    value={q}
-                    onChange={(e) => setQ(e.target.value)}
-                    placeholder="Search events, artists or venues..."
-                    aria-label="Search events"
-                    className="h-12 w-full rounded-full bg-transparent pl-11 pr-4 text-sm font-medium text-cream placeholder:text-muted focus:outline-none"
-                  />
-                </div>
-
-                <span className="hidden sm:block h-7 w-px bg-line" />
-
-                {/* Location selector */}
-                <div className="relative sm:w-44">
-                  <Pin className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-blue" />
-                  <select
-                    value={city}
-                    onChange={(e) => setCity(e.target.value)}
-                    aria-label="Location selector"
-                    className="h-12 w-full rounded-full bg-surface-2 sm:bg-transparent pl-9 pr-8 text-xs font-bold text-cream appearance-none cursor-pointer focus:outline-none border border-line sm:border-none"
-                  >
-                    <option value="All Australia">All Australia</option>
-                    {AUSTRALIAN_CITIES.map((c) => (
-                      <option key={c.name} value={c.name}>
-                        {c.name} ({c.state})
-                      </option>
-                    ))}
-                  </select>
-                  <ChevronDown className="pointer-events-none absolute right-3.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-faint" />
-                </div>
-
-                {/* Primary blue button */}
-                <Button
-                  type="submit"
-                  size="md"
-                  variant="primary"
-                  className="sm:h-12 px-8 font-bold text-sm bg-blue hover:bg-blue-dark text-white rounded-xl sm:rounded-full shadow-xs shrink-0"
-                >
-                  Search
-                </Button>
-              </div>
-            </form>
-
-            {/* Popular Searches Pills */}
-            <div className="mt-4 flex flex-wrap items-center gap-2">
-              <span className="text-xs font-semibold text-faint">Popular searches:</span>
-              {['Concerts', 'Comedy', 'Festivals', 'Theatre', 'Sports'].map((item) => (
-                <button
-                  key={item}
-                  type="button"
-                  onClick={() => handlePopularSearch(item)}
-                  className="rounded-full bg-white/95 backdrop-blur-xs px-3 py-1 text-xs font-medium text-cream border border-line shadow-2xs hover:border-blue hover:text-blue transition-colors cursor-pointer"
-                >
-                  {item}
-                </button>
-              ))}
+          <form onSubmit={search} className="card mt-8 flex flex-col gap-2 p-2 sm:flex-row sm:items-center">
+            <div className="relative flex-1">
+              <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-faint" />
+              <Input
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+                placeholder="Search events, artists or venues"
+                aria-label="Search events"
+                className="h-12 border-0 pl-11 hover:border-0 focus:ring-0"
+              />
             </div>
-          </motion.div>
+            <span className="hidden h-8 w-px bg-line sm:block" />
+            <div className="relative sm:w-48">
+              <Pin className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-blue" />
+              <select
+                value={city}
+                onChange={(e) => setCity(e.target.value)}
+                aria-label="City"
+                className={`${inputCls} h-12 appearance-none border-0 pl-11 pr-10 font-medium hover:border-0 focus:ring-0 cursor-pointer`}
+              >
+                <option value={ALL}>{ALL}</option>
+                {AUSTRALIAN_CITIES.map((c) => (
+                  <option key={c.name} value={c.name}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-faint" />
+            </div>
+            <Button type="submit" size="lg" className="shrink-0">
+              Search
+            </Button>
+          </form>
+
+          <div className="mt-4 flex flex-wrap items-center gap-2 text-sm">
+            <span className="text-faint">Browse:</span>
+            {popular.map((c) => (
+              <button
+                key={c}
+                type="button"
+                onClick={() => navigate(`/events?category=${encodeURIComponent(c)}`)}
+                className="rounded-lg border border-line bg-white px-3 py-1 font-medium text-muted transition-colors duration-150 hover:border-line-strong hover:text-ink cursor-pointer"
+              >
+                {c}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+      </motion.div>
     </section>
   )
 }
