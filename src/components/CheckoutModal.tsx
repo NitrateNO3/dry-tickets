@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import type { EventItem, Tier } from '../data/events'
+import { BOOKINGS_INBOX, submitBooking } from '../lib/booking'
 import { fmtDate, fmtTime, money } from '../lib/format'
 import { Button } from './Primitives'
-import { Check, Close, CreditCard, Pin, QrCode, Shield, Ticket } from './Icons'
+import { Check, Close, Pin, Ticket } from './Icons'
 
 type Props = {
   isOpen: boolean
@@ -26,39 +27,51 @@ export function CheckoutModal({
   fee,
   total,
 }: Props) {
-  const [step, setStep] = useState<'details' | 'payment' | 'confirmed'>('details')
+  const [step, setStep] = useState<'details' | 'confirmed'>('details')
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
-  const [paymentMethod, setPaymentMethod] = useState<'card' | 'apple' | 'google'>('card')
-  const [cardNumber, setCardNumber] = useState('')
-  const [cardExpiry, setCardExpiry] = useState('')
-  const [cardCvc, setCardCvc] = useState('')
   const [orderId, setOrderId] = useState('')
-  const [processing, setProcessing] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState('')
 
-  const handleNextToPayment = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!name || !email || !phone) return
-    setStep('payment')
-  }
-
-  const handleProcessOrder = (e: React.FormEvent) => {
-    e.preventDefault()
-    setProcessing(true)
-    setTimeout(() => {
-      const randomNum = Math.floor(10000 + Math.random() * 90000)
-      setOrderId(`DT-2026-${randomNum}`)
-      setProcessing(false)
+    if (!name || !email || !phone || submitting) return
+    setSubmitting(true)
+    setError('')
+    try {
+      const reference = await submitBooking({
+        name: name.trim(),
+        email: email.trim(),
+        phone: phone.trim(),
+        event_title: event.title,
+        event_date: `${fmtDate(event.start)} · ${fmtTime(event.start)}`,
+        venue: [event.venue, event.metro].filter(Boolean).join(', '),
+        tickets: `${qty} × ${tier.name}`,
+        subtotal: `${money(subtotal)} AUD`,
+        fee: `${money(fee)} AUD`,
+        total: `${money(total)} AUD`,
+      })
+      setOrderId(reference)
       setStep('confirmed')
-    }, 1000)
+    } catch (err) {
+      console.error('Booking submission failed', err)
+      // In dev, surface the real cause (usually missing VITE_EMAILJS_* config) instead of the generic message.
+      const detail = import.meta.env.DEV && err instanceof Error ? ` (${err.message})` : ''
+      setError(`We couldn’t submit your booking right now. Please try again, or email ${BOOKINGS_INBOX}.${detail}`)
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   const handleClose = () => {
+    if (submitting) return
     setStep('details')
     setName('')
     setEmail('')
     setPhone('')
+    setError('')
     onClose()
   }
 
@@ -139,13 +152,13 @@ export function CheckoutModal({
                 </div>
 
                 {/* Customer Information Form - No Password / No Login Required */}
-                <form onSubmit={handleNextToPayment} className="mt-6 space-y-4">
+                <form onSubmit={handleSubmit} className="mt-6 space-y-4">
                   <div>
                     <h4 className="text-xs font-bold uppercase tracking-wider text-muted mb-1">
                       Your Details
                     </h4>
                     <p className="text-[11px] text-muted">
-                      Tickets will be emailed and SMS-delivered directly to these details.
+                      No payment needed now. We’ll email a confirmation and contact you to finalise your booking.
                     </p>
                   </div>
 
@@ -191,151 +204,42 @@ export function CheckoutModal({
                     />
                   </div>
 
-                  <Button type="submit" size="lg" variant="primary" className="w-full mt-3 font-bold">
-                    Continue to Payment — {money(total)} AUD
+                  {error && (
+                    <p role="alert" className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs font-medium text-red-700">
+                      {error}
+                    </p>
+                  )}
+
+                  <Button
+                    type="submit"
+                    size="lg"
+                    variant="primary"
+                    disabled={submitting}
+                    className="w-full mt-3 font-bold"
+                  >
+                    {submitting ? (
+                      <span className="flex items-center gap-2">
+                        <span className="h-4 w-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                        Submitting…
+                      </span>
+                    ) : (
+                      'Submit Booking'
+                    )}
                   </Button>
                 </form>
               </div>
             )}
 
-            {/* Step 2: Payment Selection */}
-            {step === 'payment' && (
-              <div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setStep('details')}
-                      className="text-xs font-bold text-blue hover:underline cursor-pointer"
-                    >
-                      ← Back
-                    </button>
-                    <span className="text-muted">|</span>
-                    <h3 className="text-lg font-extrabold text-cream">Payment</h3>
-                  </div>
-                  <span className="text-base font-black text-cream">{money(total)} AUD</span>
-                </div>
-
-                {/* Payment Methods */}
-                <div className="mt-5 grid grid-cols-3 gap-2.5">
-                  {[
-                    { id: 'card', label: 'Credit Card', icon: CreditCard },
-                    { id: 'apple', label: 'Apple Pay', icon: Shield },
-                    { id: 'google', label: 'Google Pay', icon: Shield },
-                  ].map((m) => (
-                    <button
-                      key={m.id}
-                      type="button"
-                      onClick={() => setPaymentMethod(m.id as typeof paymentMethod)}
-                      className={`flex flex-col items-center justify-center p-3 rounded-2xl border transition-all cursor-pointer ${
-                        paymentMethod === m.id
-                          ? 'bg-blue-light border-blue text-blue font-bold shadow-xs'
-                          : 'bg-white border-line text-muted hover:text-cream hover:bg-surface-2'
-                      }`}
-                    >
-                      <m.icon className="h-5 w-5 mb-1" />
-                      <span className="text-xs">{m.label}</span>
-                    </button>
-                  ))}
-                </div>
-
-                <form onSubmit={handleProcessOrder} className="mt-6 space-y-4">
-                  {paymentMethod === 'card' ? (
-                    <>
-                      <div>
-                        <label className="block text-xs font-bold text-cream mb-1">
-                          Card Number
-                        </label>
-                        <input
-                          type="text"
-                          required
-                          value={cardNumber}
-                          onChange={(e) => setCardNumber(e.target.value)}
-                          placeholder="4532 •••• •••• 8921"
-                          maxLength={19}
-                          className="h-11 w-full rounded-xl bg-white px-4 text-sm text-cream placeholder:text-muted border border-[#D0D5DD] focus:outline-none focus:border-blue focus:ring-2 focus:ring-blue-light"
-                        />
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-3">
-                        <div>
-                          <label className="block text-xs font-bold text-cream mb-1">
-                            Expiry Date
-                          </label>
-                          <input
-                            type="text"
-                            required
-                            value={cardExpiry}
-                            onChange={(e) => setCardExpiry(e.target.value)}
-                            placeholder="MM / YY"
-                            maxLength={5}
-                            className="h-11 w-full rounded-xl bg-white px-4 text-sm text-cream placeholder:text-muted border border-[#D0D5DD] focus:outline-none focus:border-blue focus:ring-2 focus:ring-blue-light"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-xs font-bold text-cream mb-1">
-                            CVV / CVC
-                          </label>
-                          <input
-                            type="text"
-                            required
-                            value={cardCvc}
-                            onChange={(e) => setCardCvc(e.target.value)}
-                            placeholder="123"
-                            maxLength={4}
-                            className="h-11 w-full rounded-xl bg-white px-4 text-sm text-cream placeholder:text-muted border border-[#D0D5DD] focus:outline-none focus:border-blue focus:ring-2 focus:ring-blue-light"
-                          />
-                        </div>
-                      </div>
-                    </>
-                  ) : (
-                    <div className="rounded-2xl bg-surface-2 p-6 text-center border border-line space-y-1.5">
-                      <p className="text-sm font-bold text-cream">
-                        Pay with {paymentMethod === 'apple' ? 'Apple Pay' : 'Google Pay'}
-                      </p>
-                      <p className="text-xs text-muted">
-                        Confirm purchase using your device biometrics.
-                      </p>
-                    </div>
-                  )}
-
-                  <div className="pt-2">
-                    <Button
-                      type="submit"
-                      size="lg"
-                      variant="primary"
-                      disabled={processing}
-                      className="w-full font-bold shadow-xs"
-                    >
-                      {processing ? (
-                        <span className="flex items-center gap-2">
-                          <span className="h-4 w-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
-                          Processing Payment…
-                        </span>
-                      ) : (
-                        `Confirm & Pay ${money(total)} AUD`
-                      )}
-                    </Button>
-                  </div>
-
-                  <div className="flex items-center justify-center gap-1.5 text-[11px] text-muted">
-                    <Shield className="h-3.5 w-3.5 text-emerald-600" />
-                    <span>256-bit encrypted checkout · Official Australian Seller</span>
-                  </div>
-                </form>
-              </div>
-            )}
-
-            {/* Step 3: Booking Confirmed */}
+            {/* Step 2: Booking Request Received */}
             {step === 'confirmed' && (
               <div className="text-center">
                 <div className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-emerald-50 text-emerald-600 border border-emerald-200">
                   <Check className="h-7 w-7" />
                 </div>
 
-                <h3 className="mt-4 text-2xl font-black text-cream">Booking Confirmed!</h3>
+                <h3 className="mt-4 text-2xl font-black text-cream">Booking Request Received!</h3>
                 <p className="mt-1 text-sm text-muted">
-                  Your ticket has been successfully booked and sent to <span className="font-bold text-cream">{email}</span>.
+                  A confirmation has been sent to <span className="font-bold text-cream">{email}</span>. No payment has been taken. Our team will contact you to finalise your tickets.
                 </p>
 
                 {/* Clean E-Ticket Card */}
@@ -343,7 +247,7 @@ export function CheckoutModal({
                   <div className="flex items-start justify-between gap-4">
                     <div>
                       <span className="text-[10px] font-bold uppercase tracking-wider text-blue">
-                        Official E-Ticket
+                        Booking Request
                       </span>
                       <h4 className="text-base font-bold text-cream leading-snug mt-0.5 line-clamp-2">
                         {event.title}
@@ -379,47 +283,15 @@ export function CheckoutModal({
                       </p>
                     </div>
                     <div>
-                      <span className="text-muted">Total Paid:</span>
+                      <span className="text-muted">Total Due:</span>
                       <p className="font-black text-cream">{money(total)} AUD</p>
-                    </div>
-                  </div>
-
-                  {/* Barcode & QR Code simulation */}
-                  <div className="mt-5 rounded-xl bg-white p-3 border border-line flex items-center justify-between gap-4">
-                    <div className="space-y-1">
-                      <div className="h-9 w-40 flex items-center justify-between opacity-90">
-                        {Array.from({ length: 32 }).map((_, i) => (
-                          <span
-                            key={i}
-                            className={`h-full bg-gray-900 ${
-                              i % 3 === 0 ? 'w-1' : i % 2 === 0 ? 'w-0.5' : 'w-1.5'
-                            }`}
-                          />
-                        ))}
-                      </div>
-                      <p className="font-mono text-[9px] text-muted tracking-widest text-center">
-                        *{orderId.replace('-', '')}*
-                      </p>
-                    </div>
-                    <div className="grid h-12 w-12 place-items-center rounded-lg bg-surface-2 text-cream border border-line shrink-0">
-                      <QrCode className="h-8 w-8" />
                     </div>
                   </div>
                 </div>
 
                 {/* Actions */}
                 <div className="mt-6 flex flex-col sm:flex-row gap-3">
-                  <Button
-                    size="md"
-                    variant="primary"
-                    className="flex-1 font-bold"
-                    onClick={() => {
-                      window.print()
-                    }}
-                  >
-                    Print / Download Ticket
-                  </Button>
-                  <Button variant="outline" size="md" onClick={handleClose} className="flex-1 font-bold">
+                  <Button variant="primary" size="md" onClick={handleClose} className="flex-1 font-bold">
                     Done
                   </Button>
                 </div>

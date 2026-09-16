@@ -1,0 +1,27 @@
+<!--
+  EmailJS template: BOOKINGS INBOX NOTIFICATION
+  Settings in the EmailJS template editor:
+    Subject:   New booking request: {{tickets}} — {{event_title}} ({{reference}})
+    To Email:  ticketbookingau@gmail.com
+    From Name: Dry Tickets Website
+    Reply To:  {{email}}
+  Paste everything below this comment into the Content editor (switch it to "Code" / HTML).
+-->
+<div style="font-family:-apple-system,Segoe UI,Helvetica,Arial,sans-serif;max-width:520px;margin:0 auto;padding:24px 16px;color:#101828">
+  <h2 style="margin:0 0 4px;font-size:20px">New booking request</h2>
+  <p style="margin:0 0 16px;font-size:13px;color:#475467">Submitted {{submitted_at}} (Sydney time). No payment has been taken. Reply to this email to contact the customer.</p>
+  <table style="width:100%;border-collapse:collapse;font-size:14px" cellpadding="6">
+    <tr><td style="color:#667085;width:40%">Reference</td><td><b>{{reference}}</b></td></tr>
+    <tr><td style="color:#667085">Customer name</td><td><b>{{name}}</b></td></tr>
+    <tr><td style="color:#667085">Email</td><td><b>{{email}}</b></td></tr>
+    <tr><td style="color:#667085">Phone</td><td><b>{{phone}}</b></td></tr>
+    <tr><td colspan="2" style="border-top:1px solid #e4e7ec"></td></tr>
+    <tr><td style="color:#667085">Event</td><td><b>{{event_title}}</b></td></tr>
+    <tr><td style="color:#667085">Date &amp; time</td><td>{{event_date}}</td></tr>
+    <tr><td style="color:#667085">Venue</td><td>{{venue}}</td></tr>
+    <tr><td style="color:#667085">Tickets</td><td><b>{{tickets}}</b></td></tr>
+    <tr><td style="color:#667085">Subtotal</td><td>{{subtotal}}</td></tr>
+    <tr><td style="color:#667085">Booking fee</td><td>{{fee}}</td></tr>
+    <tr><td style="color:#667085">Total due</td><td><b>{{total}}</b></td></tr>
+  </table>
+</div>

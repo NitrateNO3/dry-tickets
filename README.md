@@ -61,9 +61,30 @@ Two things are derived rather than copied:
 - **Metro grouping.** Venue suburbs (Moore Park, Granville, Greensborough…) are
   mapped to their metro area so city filtering is useful.
 
+## Booking requests (email)
+
+"Get Tickets" collects the customer's details and submits a booking request. No payment
+is taken. `src/lib/booking.ts` sends two emails via [EmailJS](https://www.emailjs.com)
+straight from the browser (no backend, works on any host):
+
+- a copy of the request to `ticketbookingau@gmail.com`, and
+- a confirmation to the customer.
+
+Setup (one-time, ~10 minutes):
+
+1. Sign up at emailjs.com. Under **Email Services → Add New Service → Gmail**, connect
+   `ticketbookingau@gmail.com`. Note the **Service ID**.
+2. Under **Email Templates**, create two templates from `docs/emailjs/`. Each file's
+   top comment lists the Subject / To / Reply To to set. Note both **Template IDs**.
+3. Under **Account → General**, copy the **Public Key**.
+4. Copy `.env.example` to `.env` and fill in the four values. Add the same variables
+   wherever the site is built (hosting provider's environment settings), then rebuild.
+
+The free EmailJS plan allows 200 emails/month, which is 100 bookings (2 emails each).
+
 ## What is mocked
 
-This is a front-end redesign. Checkout, newsletter signup and the organiser enquiry
+This is a front-end redesign. Payment, newsletter signup and the organiser enquiry
 form are wired to state but post nowhere; the venue map is a styled placeholder
 rather than a paid map embed.
 
