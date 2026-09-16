@@ -1,10 +1,11 @@
 import { Link } from 'react-router-dom'
-import { AUSTRALIAN_CITIES, categories, featuredEvents, liveEvents } from '../data/events'
+import { AUSTRALIAN_CITIES } from '../data/events'
+import { useEvents } from '../lib/events'
 import { monthKey } from '../lib/format'
 import { plural } from '../lib/copy'
 import { Hero } from '../components/Hero'
 import { EventRow, PosterCard } from '../components/PosterCard'
-import { Button, GroupHead, Meta, Reveal, SectionHead } from '../components/Primitives'
+import { Button, GroupHead, Meta, Reveal, SectionHead, SkeletonCard } from '../components/Primitives'
 import { Arrow, Bolt, Check, Pin, Shield, Ticket } from '../components/Icons'
 
 const guarantees = [
@@ -45,17 +46,23 @@ const viewAll = (
 )
 
 export default function Home() {
-  const upcoming = liveEvents.slice(0, 8).reduce<Record<string, typeof liveEvents>>((acc, e) => {
+  const { live, featured, categories, loading } = useEvents()
+  const upcoming = live.slice(0, 8).reduce<Record<string, typeof live>>((acc, e) => {
     ;(acc[monthKey(e.start)] ??= []).push(e)
     return acc
   }, {})
 
   const categoryCounts = categories
-    .map((c) => ({ name: c, count: liveEvents.filter((e) => e.category === c).length }))
+    .map((c) => ({ name: c, count: live.filter((e) => e.category === c).length }))
     .filter((c) => c.count > 0)
 
-  const featuredSlugs = new Set(featuredEvents.slice(0, 4).map((e) => e.slug))
-  const onSale = liveEvents.filter((e) => !featuredSlugs.has(e.slug)).slice(0, 4)
+  const featuredSlugs = new Set(featured.slice(0, 4).map((e) => e.slug))
+  const onSale = live.filter((e) => !featuredSlugs.has(e.slug)).slice(0, 4)
+
+  const cards = (list: typeof live) =>
+    loading
+      ? Array.from({ length: 4 }).map((_, i) => <SkeletonCard key={i} />)
+      : list.map((e, i) => <PosterCard key={e.slug} event={e} index={i} />)
 
   return (
     <>
@@ -69,9 +76,7 @@ export default function Home() {
         <Reveal>
           <SectionHead title="Featured events" blurb="Headline shows with tickets on sale now." action={viewAll} />
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {featuredEvents.slice(0, 4).map((e, i) => (
-              <PosterCard key={e.slug} event={e} index={i} />
-            ))}
+            {cards(featured.slice(0, 4))}
           </div>
         </Reveal>
       </section>
@@ -103,9 +108,7 @@ export default function Home() {
         <Reveal>
           <SectionHead title="On sale now" blurb="More shows with tickets available, soonest first." action={viewAll} />
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {onSale.map((e, i) => (
-              <PosterCard key={e.slug} event={e} index={i} />
-            ))}
+            {cards(onSale)}
           </div>
         </Reveal>
       </section>
@@ -115,7 +118,7 @@ export default function Home() {
           <SectionHead title="Browse by city" />
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
             {AUSTRALIAN_CITIES.map((c) => {
-              const count = liveEvents.filter((e) => e.metro === c.name).length
+              const count = live.filter((e) => e.metro === c.name).length
               return (
                 <Link key={c.name} to={`/events?city=${encodeURIComponent(c.name)}`} className="card card-hover group p-4">
                   <span className="flex items-center justify-between">

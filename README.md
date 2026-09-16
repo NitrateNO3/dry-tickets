@@ -43,11 +43,14 @@ Everything is defined once in `src/index.css` (`@theme` tokens + `@utility` clas
 
 ```
 src/
-  data/events.ts      29 real events derived from the live site's schema.org feed
+  data/events.ts      35 seed events derived from the live site's schema.org feed
+  lib/supabase.ts     Supabase client + row mapping (null when not configured)
+  lib/events.tsx      EventsProvider / useEvents(): data + derived lists for every page
   lib/format.ts       date/money formatting (Australia/Sydney timezone)
   lib/copy.ts         rewrites the boilerplate source descriptions into real sentences
   components/         Nav, Footer, Hero, PosterCard, CheckoutModal, Primitives, Icons
   pages/              Home, Events, EventDetail, Artists, Venues, Sell, About, NotFound
+  pages/admin/        AdminLayout, AdminEvents, AdminEventForm
 ```
 
 ## Data
@@ -63,6 +66,38 @@ Two things are derived rather than copied:
   extracts the presenter and rebuilds a proper sentence from the event's own data.
 - **Metro grouping.** Venue suburbs (Moore Park, Granville, Greensborough…) are
   mapped to their metro area so city filtering is useful.
+
+## Admin panel (Supabase)
+
+`/admin` lets a signed-in admin add, edit and delete shows. Data lives in a Supabase
+Postgres table; the public site reads it on load. **Without Supabase configured the site
+runs on the built-in seed list in `src/data/events.ts` and `/admin` shows a setup
+checklist**, so the current Vercel deploy keeps working unchanged.
+
+Setup (once):
+
+1. Create a project at [supabase.com](https://supabase.com). Under **Authentication →
+   Providers → Email** turn off *Allow new users to sign up*. Under **Authentication →
+   Users** add the admin user (email + password).
+2. Open the **SQL editor**, paste [`supabase/schema.sql`](supabase/schema.sql), run it.
+   It creates the `events` table and row-level security: anyone can read, only a
+   signed-in user can write.
+3. Copy the **Project URL** and **anon key** (Project Settings → API) into `.env.local`
+   (see `.env.example`) and into the Vercel project's environment variables.
+4. Redeploy. Open `/admin`, sign in, and choose **Import built-in events** to seed the
+   table with the 35 shows that ship with the site.
+
+How it fits together:
+
+- `src/lib/supabase.ts` — client (null when env vars are missing), row ↔ `EventItem`
+  mapping, `fetchEvents` / `upsertEvents` / `deleteEvent`.
+- `src/lib/events.tsx` — `EventsProvider` loads once and exposes `useEvents()` with the
+  derived lists every page uses (`live`, `presale`, `featured`, `artists`, `categories`,
+  `get(slug)`), plus `loading` for skeletons and `refresh()` after admin saves.
+- `src/pages/admin/` — `AdminLayout` (setup / login / signed-in shell), `AdminEvents`
+  (list, search, filters, import), `AdminEventForm` (create / edit / delete).
+- Times in the admin form are entered in the admin's browser timezone; the public site
+  displays them in Australia/Sydney.
 
 ## What is mocked
 

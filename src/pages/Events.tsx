@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { AUSTRALIAN_CITIES, categories, events, liveEvents, presaleEvents } from '../data/events'
+import { AUSTRALIAN_CITIES } from '../data/events'
+import { useEvents } from '../lib/events'
 import { cx, monthKey } from '../lib/format'
 import { plural } from '../lib/copy'
 import { EventRow, PosterCard } from '../components/PosterCard'
-import { Button, Chip, GroupHead, Input, Meta, inputCls } from '../components/Primitives'
+import { Button, Chip, GroupHead, Input, Meta, SkeletonCard, inputCls } from '../components/Primitives'
 import { Close, Grid, Menu, Search } from '../components/Icons'
 
 type Sort = 'date' | 'price-low' | 'price-high'
@@ -14,6 +15,7 @@ type ViewMode = 'grid' | 'list'
 const selectCls = cx(inputCls, 'h-10 w-auto pr-8 font-medium cursor-pointer')
 
 export default function Events() {
+  const { events, live, presale, categories, loading } = useEvents()
   const [params, setParams] = useSearchParams()
   const [q, setQ] = useState(params.get('q') ?? '')
   const [city, setCity] = useState(params.get('city') ?? 'All')
@@ -48,7 +50,7 @@ export default function Events() {
   }, [])
 
   const filter = params.get('filter')
-  const pool = filter === 'presale' ? presaleEvents : filter === 'past' ? events : liveEvents
+  const pool = filter === 'presale' ? presale : filter === 'past' ? events : live
 
   const results = useMemo(() => {
     const term = q.trim().toLowerCase()
@@ -215,7 +217,13 @@ export default function Events() {
         </div>
       </div>
 
-      {results.length === 0 ? (
+      {loading ? (
+        <div className={grid}>
+          {Array.from({ length: 8 }).map((_, i) => (
+            <SkeletonCard key={i} />
+          ))}
+        </div>
+      ) : results.length === 0 ? (
         <div className="card flex flex-col items-center px-4 py-24 text-center">
           <span className="grid h-12 w-12 place-items-center rounded-lg bg-surface text-faint">
             <Search className="h-6 w-6" />

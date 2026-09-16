@@ -26,7 +26,8 @@ export type EventItem = {
   presale: boolean
 }
 
-export const events: EventItem[] = [
+/** Built-in shows; used when Supabase is not configured and as the admin "Import" source. */
+export const seedEvents: EventItem[] = [
   {
     slug: 'the-khan-saab-the-man-behind-dhurandhar-s-biggest-anthem-live-aus-nz-tour-2026',
     title: 'The Khan Saab - The Man Behind Dhurandhar\'s Biggest Anthem Live - AUS/NZ Tour 2026',
@@ -844,8 +845,6 @@ export const events: EventItem[] = [
   },
 ]
 
-export const categories = Array.from(new Set(events.map((e) => e.category))).sort()
-export const metros = Array.from(new Set(events.filter((e) => !e.presale).map((e) => e.metro))).sort()
 
 export type CityMeta = {
   name: string
@@ -907,31 +906,3 @@ export const AUSTRALIAN_CITIES: CityMeta[] = [
 
 export const byDate = (a: EventItem, b: EventItem) =>
   new Date(a.start ?? '2099-01-01').getTime() - new Date(b.start ?? '2099-01-01').getTime()
-
-export const liveEvents = events.filter((e) => !e.presale).sort(byDate)
-export const presaleEvents = events.filter((e) => e.presale)
-export const getEvent = (slug: string) => events.find((e) => e.slug === slug)
-
-export const allArtists = Array.from(
-  new Map(
-    events.flatMap((e) => e.artists).filter((a) => a.image).map((a) => [a.name, a]),
-  ).values(),
-)
-
-/**
- * Hero line-up. Long, venue-stuffed titles read badly at display size, so we
- * favour short titles with a named artist and never repeat the same act twice.
- */
-export const featuredEvents = (() => {
-  const seen = new Set<string>()
-  const pick = liveEvents.filter((e) => {
-    const key = e.artists[0]?.name ?? e.title
-    if (seen.has(key)) return false
-    if (e.artists.length === 0) return false
-    seen.add(key)
-    return true
-  })
-  const punchy = pick.filter((e) => e.title.length <= 56)
-  const chosen = [...punchy, ...pick.filter((e) => !punchy.includes(e))]
-  return chosen.slice(0, 6)
-})()

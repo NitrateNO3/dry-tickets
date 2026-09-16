@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import type { ImgHTMLAttributes, InputHTMLAttributes, ReactNode, TextareaHTMLAttributes } from 'react'
+import type { ImgHTMLAttributes, InputHTMLAttributes, ReactNode, SelectHTMLAttributes, TextareaHTMLAttributes } from 'react'
 import { Link } from 'react-router-dom'
 import { motion, useInView } from 'framer-motion'
 import { cx } from '../lib/format'
@@ -146,6 +146,40 @@ export const inputCls =
 
 export function Input({ className, ...rest }: InputHTMLAttributes<HTMLInputElement>) {
   return <input {...rest} className={cx(inputCls, className)} />
+}
+
+export function Select({ className, children, ...rest }: SelectHTMLAttributes<HTMLSelectElement>) {
+  return (
+    <span className="relative block">
+      <select {...rest} className={cx(inputCls, 'appearance-none pr-10 cursor-pointer', className)}>
+        {children}
+      </select>
+      <svg
+        aria-hidden
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-faint"
+      >
+        <path d="m6 9 6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    </span>
+  )
+}
+
+/** Poster-card placeholder shown while events load. Same footprint as PosterCard. */
+export function SkeletonCard() {
+  return (
+    <div className="card overflow-hidden" aria-hidden>
+      <div className="skeleton aspect-[16/11]" />
+      <div className="space-y-3 p-4">
+        <div className="skeleton h-3 w-1/3 rounded-md" />
+        <div className="skeleton h-4 w-5/6 rounded-md" />
+        <div className="skeleton h-3 w-1/2 rounded-md" />
+      </div>
+    </div>
+  )
 }
 
 export function Textarea({ className, ...rest }: TextareaHTMLAttributes<HTMLTextAreaElement>) {
