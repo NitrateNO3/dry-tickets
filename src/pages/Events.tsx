@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { AUSTRALIAN_CITIES, categories, events, liveEvents, presaleEvents } from '../data/events'
 import { cx, monthKey } from '../lib/format'
@@ -22,6 +22,23 @@ export default function Events() {
   const [sort, setSort] = useState<Sort>('date')
   const [viewMode, setViewMode] = useState<ViewMode>('grid')
   const [now] = useState(() => Date.now())
+
+  // Filter bar hides while scrolling down, reappears on any scroll up.
+  const [barHidden, setBarHidden] = useState(false)
+  const barRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    let lastY = window.scrollY
+    const onScroll = () => {
+      const y = window.scrollY
+      const delta = y - lastY
+      if (Math.abs(delta) < 8) return
+      lastY = y
+      const focused = barRef.current?.contains(document.activeElement)
+      setBarHidden(delta > 0 && y > 240 && !focused)
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
 
   const filter = params.get('filter')
   const pool = filter === 'presale' ? presaleEvents : filter === 'past' ? events : liveEvents
@@ -99,8 +116,15 @@ export default function Events() {
         <h1 className="t-h1 mt-3 text-ink">{title}</h1>
       </div>
 
-      {/* Sticky filter bar — sits flush under the h-16 nav */}
-      <div className="sticky top-16 z-30 -mx-4 mb-10 border-y border-line bg-white/95 px-4 py-4 backdrop-blur-md sm:-mx-8 sm:px-8">
+      {/* Sticky filter bar — sits flush under the h-16 nav; slides up out of view while scrolling down */}
+      <div
+        ref={barRef}
+        onFocus={() => setBarHidden(false)}
+        className={cx(
+          'sticky top-16 z-30 -mx-4 mb-10 border-y border-line bg-white/95 px-4 py-4 backdrop-blur-md transition-transform duration-200 ease-out sm:-mx-8 sm:px-8',
+          barHidden && '-translate-y-[calc(100%+4rem)]',
+        )}
+      >
         <div className="flex flex-wrap items-center gap-2">
           <div className="relative min-w-56 flex-1">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-faint" />
