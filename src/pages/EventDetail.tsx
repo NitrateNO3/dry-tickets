@@ -1,16 +1,23 @@
 import { useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { motion } from 'framer-motion'
 import { getEvent, liveEvents } from '../data/events'
 import { cx, fmtDate, fmtTime, money } from '../lib/format'
-import { blurbOf } from '../lib/copy'
+import { blurbOf, plural } from '../lib/copy'
 import { PosterCard } from '../components/PosterCard'
 import { CheckoutModal } from '../components/CheckoutModal'
-import { Badge, Button, Reveal, SectionHead } from '../components/Primitives'
+import { Badge, Button, Img, Input, Meta, Reveal, SectionHead } from '../components/Primitives'
 import { Arrow, Cal, Check, Pin, Shield, Star, Ticket } from '../components/Icons'
 import NotFound from './NotFound'
 
+// ponytail: placeholder rate (see README) — replace with the real fee schedule.
 const BOOKING_FEE_RATE = 0.045
+
+const notes = [
+  'Mobile e-ticket accepted at the door',
+  'Photo ID required for 18+ areas',
+  'Seating as allocated on your ticket',
+  'Booking fee shown before payment',
+]
 
 export default function EventDetail() {
   const { slug } = useParams()
@@ -19,6 +26,7 @@ export default function EventDetail() {
   const [tierIdx, setTierIdx] = useState(0)
   const [qty, setQty] = useState(2)
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false)
+  const [notify, setNotify] = useState<'idle' | 'sending' | 'done'>('idle')
 
   const related = useMemo(
     () =>
@@ -31,7 +39,7 @@ export default function EventDetail() {
                   e.category === event.category ||
                   e.artists.some((a) => event.artists.some((b) => b.name === a.name))),
             )
-            .slice(0, 5)
+            .slice(0, 4)
         : [],
     [event],
   )
@@ -44,177 +52,142 @@ export default function EventDetail() {
   const fee = subtotal * BOOKING_FEE_RATE
   const total = subtotal + fee
   const address = [event.street, event.city, event.region, event.postcode].filter(Boolean).join(', ')
+  const where = [event.venue, event.metro].filter(Boolean).join(', ')
 
   return (
-    <div className="relative bg-white pb-24">
-      <div className="mx-auto max-w-[1400px] px-5 pt-28 sm:px-8 lg:pt-36">
-        {/* Breadcrumbs */}
-        <nav className="mb-6 flex items-center gap-2 text-xs text-muted">
-          <Link to="/" className="hover:text-blue transition-colors">
+    <div className="pb-24">
+      <Meta
+        title={event.title}
+        description={`${event.presale ? 'Presale' : fmtDate(event.start)} · ${where}. ${
+          event.low !== undefined ? `Tickets from ${money(event.low)}.` : 'Register for presale access.'
+        }`}
+        image={event.image}
+      />
+
+      <div className="wrap page-top">
+        <nav aria-label="Breadcrumb" className="mb-6 flex min-w-0 items-center gap-2 text-sm text-muted">
+          <Link to="/" className="hover:text-ink">
             Home
           </Link>
-          <span>/</span>
-          <Link to="/events" className="hover:text-blue transition-colors">
+          <span aria-hidden>/</span>
+          <Link to="/events" className="hover:text-ink">
             Events
           </Link>
-          <span>/</span>
-          <Link to={`/events?city=${encodeURIComponent(event.metro)}`} className="hover:text-blue transition-colors">
+          <span aria-hidden>/</span>
+          <Link to={`/events?city=${encodeURIComponent(event.metro)}`} className="hover:text-ink">
             {event.metro}
           </Link>
-          <span>/</span>
-          <span className="truncate text-cream font-medium max-w-[200px]">{event.title}</span>
+          <span aria-hidden>/</span>
+          <span className="truncate font-medium text-ink">{event.title}</span>
         </nav>
 
-        {/* 2-Column Layout: Left = Poster Artwork, Right = Event Information & Booking Box */}
-        <div className="grid gap-10 lg:grid-cols-[420px_1fr] lg:gap-14 items-start">
-          {/* LEFT COLUMN: Event Poster Artwork + Guarantees */}
-          <div className="lg:sticky lg:top-28">
-            <div className="overflow-hidden rounded-2xl bg-surface-2 border border-line shadow-xs">
-              <img
-                src={event.image}
-                alt={`${event.title} poster`}
-                fetchPriority="high"
-                className="w-full aspect-[460/580] object-cover"
-              />
-            </div>
-
-            {/* Quick Guarantees Below Poster */}
-            <div className="mt-4 rounded-2xl bg-surface-2 p-4 border border-line space-y-2.5 text-xs text-muted">
-              <div className="flex items-center gap-2 text-cream font-medium">
-                <Shield className="h-4 w-4 text-emerald-600 shrink-0" />
-                <span>100% Official Verified Tickets</span>
-              </div>
-              <div className="flex items-center gap-2 text-cream font-medium">
-                <Ticket className="h-4 w-4 text-blue shrink-0" />
-                <span>Instant Mobile Barcode E-Ticket</span>
-              </div>
-              <div className="flex items-center gap-2 text-cream font-medium">
-                <Check className="h-4 w-4 text-blue shrink-0" />
-                <span>Sydney-based Australian Support</span>
-              </div>
-            </div>
+        <div className="grid grid-cols-1 items-start gap-10 lg:grid-cols-[400px_1fr] lg:gap-16">
+          {/* Poster */}
+          <div className="lg:sticky lg:top-24">
+            <Img
+              src={event.image}
+              alt={`${event.title} poster`}
+              fetchPriority="high"
+              className="aspect-[460/651] rounded-xl border border-line shadow-xs"
+            />
+            <ul className="card mt-4 space-y-3 p-4 text-sm text-ink">
+              <li className="flex items-center gap-3">
+                <Shield className="h-4 w-4 shrink-0 text-success" />
+                Official ticket from the primary seller
+              </li>
+              <li className="flex items-center gap-3">
+                <Ticket className="h-4 w-4 shrink-0 text-blue" />
+                E-ticket by email and SMS
+              </li>
+              <li className="flex items-center gap-3">
+                <Check className="h-4 w-4 shrink-0 text-blue" />
+                Support on 0452 337 387
+              </li>
+            </ul>
           </div>
 
-          {/* RIGHT COLUMN: Event Information & Booking Box */}
-          <div>
-            {/* Badges */}
+          {/* Details + booking */}
+          <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
               <Badge tone="blue">{event.category}</Badge>
-              {event.presale && <Badge tone="gold">VIP Presale</Badge>}
-              <span className="rounded-full bg-surface-2 px-2.5 py-0.5 text-[11px] font-semibold text-muted border border-line">
-                {event.metro}, Australia
-              </span>
+              {event.presale && <Badge tone="warning">Presale</Badge>}
               {event.rating && (
-                <span className="inline-flex items-center gap-1 text-xs font-bold text-amber-600">
-                  <Star className="h-3.5 w-3.5 fill-current" />
+                <span className="inline-flex items-center gap-1 text-sm font-medium text-ink">
+                  <Star className="h-4 w-4 text-warning" />
                   {event.rating.toFixed(1)}
-                  <span className="text-muted font-normal">
-                    ({event.ratingCount} reviews)
+                  <span className="font-normal text-muted">
+                    ({event.ratingCount} {plural(event.ratingCount ?? 0, 'review')})
                   </span>
                 </span>
               )}
             </div>
 
-            {/* Event Name */}
-            <motion.h1
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-              className="mt-4 text-[clamp(2rem,4.2vw,3.2rem)] font-extrabold leading-tight text-cream"
-            >
-              {event.title}
-            </motion.h1>
+            <h1 className="t-h1 mt-4 text-ink">{event.title}</h1>
 
-            {/* Prominent Event Details */}
-            <div className="mt-6 rounded-2xl bg-surface-2 p-5 border border-line">
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="flex items-start gap-3">
-                  <span className="grid h-9 w-9 place-items-center rounded-xl bg-blue-light text-blue shrink-0">
-                    <Cal className="h-4 w-4" />
-                  </span>
-                  <div>
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-muted">
-                      Date & Time
-                    </span>
-                    <p className="text-sm font-bold text-cream mt-0.5">
-                      {fmtDate(event.start)}
-                    </p>
-                    <p className="text-xs text-muted">
-                      {fmtTime(event.start)} AEST
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3">
-                  <span className="grid h-9 w-9 place-items-center rounded-xl bg-blue-light text-blue shrink-0">
-                    <Pin className="h-4 w-4" />
-                  </span>
-                  <div>
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-muted">
-                      Venue & Location
-                    </span>
-                    <p className="text-sm font-bold text-cream mt-0.5 truncate">
-                      {event.venue || 'Major Venue'}
-                    </p>
-                    <p className="text-xs text-muted truncate">
-                      {event.metro}, Australia
-                    </p>
-                  </div>
+            <div className="card mt-6 grid grid-cols-1 gap-6 p-6 sm:grid-cols-2">
+              <div className="flex items-start gap-3">
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-blue-light text-blue">
+                  <Cal className="h-5 w-5" />
+                </span>
+                <div>
+                  <span className="t-label text-faint">Date</span>
+                  <p className="mt-1 text-sm font-semibold text-ink">{fmtDate(event.start)}</p>
+                  {event.start && <p className="text-sm text-muted">Doors {fmtTime(event.start)} (Sydney time)</p>}
                 </div>
               </div>
-
-              {/* Starting Price Header */}
-              {event.low !== undefined && (
-                <div className="mt-4 pt-4 border-t border-line flex items-baseline justify-between">
-                  <span className="text-xs font-semibold text-muted">Ticket Pricing</span>
-                  <span className="text-sm text-muted">
-                    From <strong className="text-lg font-black text-cream">{money(event.low)} AUD</strong>
-                  </span>
+              <div className="flex min-w-0 items-start gap-3">
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-blue-light text-blue">
+                  <Pin className="h-5 w-5" />
+                </span>
+                <div className="min-w-0">
+                  <span className="t-label text-faint">Venue</span>
+                  <p className="mt-1 truncate text-sm font-semibold text-ink">{event.venue ?? 'To be announced'}</p>
+                  <p className="truncate text-sm text-muted">{event.metro}</p>
                 </div>
-              )}
+              </div>
             </div>
 
-            {/* Ticket Booking Box */}
-            <div className="mt-8 rounded-3xl bg-white p-6 border border-line shadow-xs">
+            {/* Booking box */}
+            <div className="card mt-8 p-6">
               {tiers.length === 0 ? (
-                <div className="text-center py-4">
-                  <Badge tone="gold">VIP Presale</Badge>
-                  <h3 className="mt-3 text-base font-bold text-cream">
-                    Tickets Not Yet On Public Sale
-                  </h3>
-                  <p className="mt-1.5 text-xs text-muted leading-relaxed max-w-sm mx-auto">
-                    Register your email to receive an early-bird VIP presale code 24 hours prior to public release.
-                  </p>
-                  <form
-                    onSubmit={(e) => {
-                      e.preventDefault()
-                      alert('Thank you! You are on the presale notification list.')
-                    }}
-                    className="mt-4 max-w-sm mx-auto space-y-2.5"
-                  >
-                    <input
-                      type="email"
-                      required
-                      placeholder="your.email@example.com"
-                      aria-label="Email for presale"
-                      className="h-11 w-full rounded-xl bg-white px-4 text-xs text-cream placeholder:text-muted border border-[#D0D5DD] focus:outline-none focus:border-blue focus:ring-2 focus:ring-blue-light"
-                    />
-                    <Button type="submit" size="md" variant="primary" className="w-full">
-                      Notify Me at Presale
-                    </Button>
-                  </form>
+                <div className="mx-auto max-w-sm py-4 text-center">
+                  {notify === 'done' ? (
+                    <>
+                      <span className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-success-light text-success">
+                        <Check className="h-6 w-6" />
+                      </span>
+                      <h2 className="t-h3 mt-4 text-ink">You're on the list</h2>
+                      <p className="mt-2 text-sm text-muted">
+                        We'll email your presale code before tickets go on general sale.
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <h2 className="t-h3 text-ink">Tickets are not on sale yet</h2>
+                      <p className="mt-2 text-sm text-muted">
+                        Leave your email and we'll send a presale code 24 hours before general sale.
+                      </p>
+                      <form
+                        onSubmit={(e) => {
+                          e.preventDefault()
+                          setNotify('sending')
+                          // ponytail: mocked — wire to the mailing-list endpoint.
+                          setTimeout(() => setNotify('done'), 700)
+                        }}
+                        className="mt-6 space-y-3"
+                      >
+                        <Input type="email" required placeholder="you@example.com" aria-label="Email address" autoComplete="email" />
+                        <Button type="submit" loading={notify === 'sending'} className="w-full">
+                          Notify me
+                        </Button>
+                      </form>
+                    </>
+                  )}
                 </div>
               ) : (
                 <>
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-xs font-bold uppercase tracking-wider text-muted">
-                      Select Ticket Tier
-                    </h3>
-                    <span className="text-xs font-semibold text-blue">AUD Currency</span>
-                  </div>
-
-                  {/* Tier Selector */}
-                  <div className="space-y-2.5">
+                  <h2 className="t-label mb-4 text-faint">Choose tickets</h2>
+                  <div className="space-y-2" role="group" aria-label="Ticket type">
                     {tiers.map((t, i) => {
                       const sold = t.availability === 'SoldOut'
                       const selected = i === tierIdx
@@ -223,201 +196,142 @@ export default function EventDetail() {
                           key={`${t.name}-${i}`}
                           type="button"
                           disabled={sold}
+                          aria-pressed={selected}
                           onClick={() => setTierIdx(i)}
                           className={cx(
-                            'flex w-full items-center justify-between gap-3 rounded-2xl p-3.5 text-left transition-all cursor-pointer border',
-                            sold && 'cursor-not-allowed opacity-40 bg-gray-50 border-line',
-                            selected && !sold
-                              ? 'bg-blue-light border-blue text-cream ring-1 ring-blue'
-                              : 'bg-white border-line hover:border-gray-300',
+                            'flex w-full items-center justify-between gap-4 rounded-lg border p-4 text-left transition-colors duration-150',
+                            sold
+                              ? 'cursor-not-allowed border-line bg-surface opacity-60'
+                              : selected
+                                ? 'border-blue bg-blue-light cursor-pointer'
+                                : 'border-line bg-white hover:border-line-strong cursor-pointer',
                           )}
                         >
-                          <div className="min-w-0">
-                            <p className="truncate text-sm font-bold text-cream">{t.name}</p>
-                            <p className="text-[11px] font-semibold text-emerald-600 mt-0.5">
-                              {sold ? 'Sold Out' : 'Instant E-Ticket'}
-                            </p>
-                          </div>
-                          <span className="shrink-0 text-sm font-black text-cream">
-                            {money(t.price)} AUD
+                          <span className="min-w-0">
+                            <span className="block truncate text-sm font-semibold text-ink">{t.name}</span>
+                            <span className={cx('text-xs', sold ? 'text-danger' : 'text-muted')}>
+                              {sold ? 'Sold out' : 'Available'}
+                            </span>
                           </span>
+                          <span className="shrink-0 text-sm font-semibold text-ink">{money(t.price)}</span>
                         </button>
                       )
                     })}
                   </div>
 
-                  {/* Quantity Picker */}
-                  <div className="mt-5 flex items-center justify-between rounded-2xl bg-surface-2 px-4 py-3 border border-line">
-                    <span className="text-xs font-bold text-cream">Number of Tickets</span>
+                  <div className="mt-4 flex items-center justify-between rounded-lg border border-line bg-surface px-4 py-3">
+                    <span className="text-sm font-medium text-ink">Quantity</span>
                     <div className="flex items-center gap-3">
                       <button
                         type="button"
                         onClick={() => setQty((n) => Math.max(1, n - 1))}
-                        aria-label="Decrease tickets"
-                        className="grid h-8 w-8 place-items-center rounded-full bg-white border border-line text-sm font-bold text-cream hover:bg-gray-100 transition-colors cursor-pointer"
+                        disabled={qty <= 1}
+                        aria-label="Fewer tickets"
+                        className="grid h-9 w-9 place-items-center rounded-lg border border-line bg-white text-ink transition-colors hover:border-line-strong disabled:opacity-50 cursor-pointer"
                       >
                         −
                       </button>
-                      <span className="w-6 text-center text-sm font-black text-cream">
+                      <span className="w-6 text-center text-sm font-semibold text-ink" aria-live="polite">
                         {qty}
                       </span>
                       <button
                         type="button"
                         onClick={() => setQty((n) => Math.min(10, n + 1))}
-                        aria-label="Increase tickets"
-                        className="grid h-8 w-8 place-items-center rounded-full bg-white border border-line text-sm font-bold text-cream hover:bg-gray-100 transition-colors cursor-pointer"
+                        disabled={qty >= 10}
+                        aria-label="More tickets"
+                        className="grid h-9 w-9 place-items-center rounded-lg border border-line bg-white text-ink transition-colors hover:border-line-strong disabled:opacity-50 cursor-pointer"
                       >
                         +
                       </button>
                     </div>
                   </div>
 
-                  {/* Pricing Breakdown */}
-                  <div className="mt-5 space-y-2 border-t border-line pt-4 text-xs">
+                  <div className="mt-6 space-y-2 border-t border-line pt-4 text-sm">
                     <div className="flex justify-between text-muted">
                       <span>
-                        {qty} × {tier?.name || 'General Admission'}
+                        {qty} × {tier.name}
                       </span>
-                      <span className="font-semibold text-cream">{money(subtotal)} AUD</span>
+                      <span className="text-ink">{money(subtotal)}</span>
                     </div>
                     <div className="flex justify-between text-muted">
-                      <span>Booking & Facility Fee</span>
-                      <span className="font-semibold text-cream">{money(fee)} AUD</span>
+                      <span>Booking fee</span>
+                      <span className="text-ink">{money(fee)}</span>
                     </div>
-                    <div className="flex items-baseline justify-between border-t border-line pt-3 text-sm font-bold text-cream">
-                      <span>Total Payable</span>
-                      <span className="text-xl font-black text-cream">
-                        {money(total)} AUD
-                      </span>
+                    <div className="flex items-baseline justify-between border-t border-line pt-3">
+                      <span className="font-semibold text-ink">Total</span>
+                      <span className="t-h3 text-ink">{money(total)}</span>
                     </div>
                   </div>
 
-                  {/* Primary Get Tickets Button */}
-                  <Button
-                    size="lg"
-                    variant="primary"
-                    onClick={() => setIsCheckoutOpen(true)}
-                    className="mt-6 w-full font-bold shadow-xs py-3.5"
-                  >
-                    <Ticket className="h-4 w-4" />
-                    Get Tickets · {money(total)} AUD
+                  <Button size="lg" onClick={() => setIsCheckoutOpen(true)} className="mt-6 w-full">
+                    Get tickets
                   </Button>
-
-                  <div className="mt-3 flex items-center justify-center gap-1.5 text-[11px] text-muted">
-                    <Shield className="h-3.5 w-3.5 text-emerald-600" />
-                    <span>No customer sign-in required · Instant barcode delivery</span>
-                  </div>
                 </>
               )}
             </div>
 
-            {/* About This Event */}
-            <div className="mt-12">
-              <h2 className="text-xs font-bold uppercase tracking-wider text-blue mb-3">
-                About the Event
-              </h2>
-              <p className="text-[15px] leading-relaxed text-muted">
-                {blurbOf(event)}
-              </p>
+            <section className="mt-12">
+              <h2 className="t-h3 text-ink">About this event</h2>
+              <p className="mt-3 text-muted">{blurbOf(event)}</p>
+              <ul className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                {notes.map((n) => (
+                  <li key={n} className="flex items-center gap-3 text-sm text-ink">
+                    <Check className="h-4 w-4 shrink-0 text-success" />
+                    {n}
+                  </li>
+                ))}
+              </ul>
+            </section>
 
-              <div className="mt-6 rounded-2xl bg-surface-2 p-5 border border-line">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-cream mb-3">
-                  Admission & Venue Notes
-                </h3>
-                <ul className="grid gap-2.5 sm:grid-cols-2 text-xs text-cream">
-                  <li className="flex items-center gap-2">
-                    <Check className="h-4 w-4 text-emerald-600 shrink-0" />
-                    <span>Mobile e-ticket accepted on smartphone</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Check className="h-4 w-4 text-emerald-600 shrink-0" />
-                    <span>Australian ID required for 18+ areas</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Check className="h-4 w-4 text-emerald-600 shrink-0" />
-                    <span>Reserved seating allocated on arrival</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Check className="h-4 w-4 text-emerald-600 shrink-0" />
-                    <span>Face-value transparent AUD booking fee</span>
-                  </li>
-                </ul>
-              </div>
-            </div>
-
-            {/* Venue Location Details */}
             {address && (
-              <div className="mt-8 rounded-2xl bg-white p-5 border border-line">
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <h3 className="text-xs font-bold uppercase tracking-wider text-blue mb-1">
-                      Venue Address
-                    </h3>
-                    <p className="text-sm font-bold text-cream">{event.venue}</p>
-                    <p className="text-xs text-muted mt-0.5">{address}</p>
-                  </div>
-                  <Button
-                    href={`https://maps.google.com/?q=${encodeURIComponent(`${event.venue} ${address}`)}`}
-                    size="sm"
-                    variant="outline"
-                  >
-                    Open in Maps
-                    <Arrow className="h-3 w-3" />
-                  </Button>
+              <section className="card mt-8 flex flex-wrap items-start justify-between gap-4 p-6">
+                <div className="min-w-0">
+                  <h2 className="t-label text-faint">Venue address</h2>
+                  <p className="mt-2 text-sm font-semibold text-ink">{event.venue}</p>
+                  <p className="text-sm text-muted">{address}</p>
                 </div>
-              </div>
+                <Button
+                  href={`https://maps.google.com/?q=${encodeURIComponent(`${event.venue} ${address}`)}`}
+                  size="sm"
+                  variant="outline"
+                >
+                  Open in Maps
+                  <Arrow className="h-4 w-4" />
+                </Button>
+              </section>
             )}
           </div>
         </div>
 
-        {/* Related Events Rail */}
         {related.length > 0 && (
-          <section className="mt-24 pt-16 border-t border-line">
+          <section className="section">
             <Reveal>
-              <SectionHead
-                eyebrow="More Shows"
-                title="You might also"
-                accent="like"
-                blurb="Explore other popular live events happening across Australia."
-              />
+              <SectionHead title="You might also like" blurb={`More ${event.category.toLowerCase()} and shows in ${event.metro}.`} />
+              <div className="grid grid-cols-1 gap-6 min-[480px]:grid-cols-2 lg:grid-cols-4">
+                {related.map((e, i) => (
+                  <PosterCard key={e.slug} event={e} index={i} />
+                ))}
+              </div>
             </Reveal>
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
-              {related.map((e, i) => (
-                <Reveal key={e.slug} delay={0.04 * i}>
-                  <PosterCard event={e} index={i} />
-                </Reveal>
-              ))}
-            </div>
           </section>
         )}
       </div>
 
-      {/* Sticky Mobile Booking Bar */}
+      {/* Sticky mobile booking bar */}
       {tiers.length > 0 && (
-        <div className="fixed inset-x-0 bottom-0 z-40 bg-white/95 backdrop-blur-md border-t border-line p-3.5 lg:hidden shadow-lg">
-          <div className="flex items-center justify-between gap-3">
+        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-white/95 p-4 shadow-md backdrop-blur-md lg:hidden">
+          <div className="flex items-center justify-between gap-4">
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-wider text-muted">
-                From
-              </p>
-              <p className="text-base font-black text-cream leading-none mt-0.5">
-                {money(event.low)} AUD
-              </p>
+              <p className="text-xs text-faint">From</p>
+              <p className="text-base font-semibold text-ink">{money(event.low)}</p>
             </div>
-            <Button
-              size="md"
-              variant="primary"
-              className="flex-1 font-bold"
-              onClick={() => setIsCheckoutOpen(true)}
-            >
-              <Ticket className="h-4 w-4" />
-              Get Tickets
+            <Button className="flex-1" onClick={() => setIsCheckoutOpen(true)}>
+              Get tickets
             </Button>
           </div>
         </div>
       )}
 
-      {/* Frictionless Checkout Modal */}
       {tier && (
         <CheckoutModal
           isOpen={isCheckoutOpen}

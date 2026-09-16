@@ -16,13 +16,6 @@ export const Cal = ({ className }: P) => (
   </svg>
 )
 
-export const Clock = ({ className }: P) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" className={s(className)}>
-    <circle cx="12" cy="12" r="9" />
-    <path d="M12 7v5l3.2 2" strokeLinecap="round" strokeLinejoin="round" />
-  </svg>
-)
-
 export const Star = ({ className }: P) => (
   <svg viewBox="0 0 24 24" fill="currentColor" className={s(className)}>
     <path d="m12 3.6 2.6 5.3 5.9.86-4.25 4.14 1 5.85L12 16.99l-5.25 2.76 1-5.85-4.25-4.14 5.9-.86L12 3.6Z" />
@@ -94,34 +87,9 @@ export const Insta = ({ className }: P) => (
   </svg>
 )
 
-export const Facebook = ({ className }: P) => (
-  <svg viewBox="0 0 24 24" fill="currentColor" className={s(className)}>
-    <path d="M13.5 21v-8h2.7l.4-3.1h-3.1V7.9c0-.9.25-1.5 1.55-1.5h1.65V3.6c-.29-.04-1.27-.12-2.41-.12-2.38 0-4.01 1.45-4.01 4.12v2.3H7.6V13h2.68v8h3.22Z" />
-  </svg>
-)
-
-export const YouTube = ({ className }: P) => (
-  <svg viewBox="0 0 24 24" fill="currentColor" className={s(className)}>
-    <path d="M21.6 7.2a2.5 2.5 0 0 0-1.76-1.78C18.28 5 12 5 12 5s-6.28 0-7.84.42A2.5 2.5 0 0 0 2.4 7.2 26 26 0 0 0 2 12a26 26 0 0 0 .4 4.8 2.5 2.5 0 0 0 1.76 1.78C5.72 19 12 19 12 19s6.28 0 7.84-.42a2.5 2.5 0 0 0 1.76-1.78A26 26 0 0 0 22 12a26 26 0 0 0-.4-4.8ZM10 15.2V8.8l5.2 3.2-5.2 3.2Z" />
-  </svg>
-)
-
-export const User = ({ className }: P) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={s(className)}>
-    <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" strokeLinecap="round" />
-    <circle cx="12" cy="7" r="4" />
-  </svg>
-)
-
 export const ChevronDown = ({ className }: P) => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={s(className)}>
     <path d="m6 9 6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
-  </svg>
-)
-
-export const Filter = ({ className }: P) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={s(className)}>
-    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" strokeLinejoin="round" />
   </svg>
 )
 
@@ -138,13 +106,6 @@ export const QrCode = ({ className }: P) => (
     <rect x="14" y="3" width="7" height="7" rx="1" />
     <rect x="14" y="14" width="7" height="7" rx="1" />
     <rect x="3" y="14" width="7" height="7" rx="1" />
-  </svg>
-)
-
-export const Compass = ({ className }: P) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={s(className)}>
-    <circle cx="12" cy="12" r="10" />
-    <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" fill="currentColor" fillOpacity="0.2" />
   </svg>
 )
 

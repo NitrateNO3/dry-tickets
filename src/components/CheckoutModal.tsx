@@ -2,9 +2,9 @@ import { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import type { EventItem, Tier } from '../data/events'
 import { BOOKINGS_INBOX, submitBooking } from '../lib/booking'
-import { fmtDate, fmtTime, money } from '../lib/format'
-import { Button } from './Primitives'
-import { Check, Close, Pin, Ticket } from './Icons'
+import { cx, fmtDate, fmtTime, money } from '../lib/format'
+import { Button, Field, Input, useDialog } from './Primitives'
+import { Check, Close } from './Icons'
 
 type Props = {
   isOpen: boolean
@@ -17,17 +17,17 @@ type Props = {
   total: number
 }
 
-export function CheckoutModal({
-  isOpen,
-  onClose,
-  event,
-  tier,
-  qty,
-  subtotal,
-  fee,
-  total,
-}: Props) {
-  const [step, setStep] = useState<'details' | 'confirmed'>('details')
+type Step = 'details' | 'confirmed'
+
+const Row = ({ label, value, strong }: { label: string; value: string; strong?: boolean }) => (
+  <div className={cx('flex justify-between gap-4', strong ? 'text-base font-semibold text-ink' : 'text-sm text-muted')}>
+    <span>{label}</span>
+    <span className={cx('text-right', !strong && 'font-medium text-ink')}>{value}</span>
+  </div>
+)
+
+export function CheckoutModal({ isOpen, onClose, event, tier, qty, subtotal, fee, total }: Props) {
+  const [step, setStep] = useState<Step>('details')
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
@@ -35,7 +35,21 @@ export function CheckoutModal({
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const when = `${fmtDate(event.start)} · ${fmtTime(event.start)}`
+  const where = [event.venue, event.metro].filter(Boolean).join(', ')
+
+  const close = () => {
+    if (submitting) return
+    setStep('details')
+    setName('')
+    setEmail('')
+    setPhone('')
+    setError('')
+    onClose()
+  }
+  useDialog(isOpen, close)
+
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!name || !email || !phone || submitting) return
     setSubmitting(true)
@@ -46,8 +60,8 @@ export function CheckoutModal({
         email: email.trim(),
         phone: phone.trim(),
         event_title: event.title,
-        event_date: `${fmtDate(event.start)} · ${fmtTime(event.start)}`,
-        venue: [event.venue, event.metro].filter(Boolean).join(', '),
+        event_date: when,
+        venue: where,
         tickets: `${qty} × ${tier.name}`,
         subtotal: `${money(subtotal)} AUD`,
         fee: `${money(fee)} AUD`,
@@ -65,237 +79,129 @@ export function CheckoutModal({
     }
   }
 
-  const handleClose = () => {
-    if (submitting) return
-    setStep('details')
-    setName('')
-    setEmail('')
-    setPhone('')
-    setError('')
-    onClose()
-  }
-
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 overflow-y-auto">
-          {/* Backdrop */}
+        <div className="fixed inset-0 z-[100] flex items-center justify-center overflow-y-auto p-4">
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={handleClose}
-            className="fixed inset-0 bg-black/40 backdrop-blur-xs"
+            onClick={close}
+            className="fixed inset-0 bg-ink/40"
           />
 
-          {/* Dialog Container */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.96, y: 12 }}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="checkout-title"
+            initial={{ opacity: 0, scale: 0.98, y: 8 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.96, y: 12 }}
-            transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-            className="relative w-full max-w-lg overflow-hidden rounded-3xl bg-white p-6 sm:p-8 border border-line shadow-2xl z-10 my-8"
+            exit={{ opacity: 0, scale: 0.98, y: 8 }}
+            transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+            className="relative z-10 my-8 w-full max-w-lg rounded-xl border border-line bg-white p-6 shadow-xl sm:p-8"
           >
-            {/* Close Button */}
             <button
               type="button"
-              onClick={handleClose}
+              onClick={close}
               aria-label="Close"
-              className="absolute right-5 top-5 grid h-8 w-8 place-items-center rounded-full text-muted hover:bg-surface-2 hover:text-cream transition-colors cursor-pointer"
+              className="absolute right-4 top-4 grid h-9 w-9 place-items-center rounded-lg text-muted transition-colors hover:bg-surface hover:text-ink cursor-pointer"
             >
               <Close className="h-4 w-4" />
             </button>
 
-            {/* Step 1: Customer Details & Order Summary */}
             {step === 'details' && (
-              <div>
-                <div className="flex items-center gap-3">
-                  <span className="grid h-10 w-10 place-items-center rounded-2xl bg-blue-light text-blue">
-                    <Ticket className="h-5 w-5" />
-                  </span>
-                  <div>
-                    <h3 className="text-lg font-extrabold text-cream">Order Summary</h3>
-                    <p className="text-xs text-muted truncate max-w-[280px]">
-                      {event.title}
-                    </p>
+              <>
+                <h2 id="checkout-title" className="t-h3 text-ink">
+                  Your order
+                </h2>
+                <p className="mt-1 truncate text-sm text-muted">{event.title}</p>
+
+                <div className="mt-6 space-y-2 rounded-lg border border-line bg-surface p-4">
+                  <Row label={`${qty} × ${tier.name}`} value={money(subtotal)} />
+                  <Row label="Date" value={when} />
+                  <Row label="Venue" value={where} />
+                  <Row label="Booking fee" value={money(fee)} />
+                  <div className="border-t border-line pt-2">
+                    <Row label="Total" value={money(total)} strong />
                   </div>
                 </div>
 
-                {/* Ticket line */}
-                <div className="mt-5 rounded-2xl bg-surface-2 p-4 border border-line space-y-2 text-[13px]">
-                  <div className="flex justify-between font-bold text-cream">
-                    <span>
-                      {qty} × {tier.name}
-                    </span>
-                    <span>{money(subtotal)} AUD</span>
-                  </div>
-                  <div className="flex justify-between text-muted text-xs">
-                    <span>Event Date</span>
-                    <span className="text-cream font-medium">
-                      {fmtDate(event.start)} · {fmtTime(event.start)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between text-muted text-xs">
-                    <span>Venue</span>
-                    <span className="text-cream font-medium truncate max-w-[220px]">
-                      {event.venue}, {event.metro}
-                    </span>
-                  </div>
-                  <div className="flex justify-between text-muted text-xs">
-                    <span>Booking & Facility Fee</span>
-                    <span className="text-cream font-medium">{money(fee)} AUD</span>
-                  </div>
-                  <div className="flex justify-between border-t border-line pt-2.5 text-base font-bold text-cream">
-                    <span>Total</span>
-                    <span className="text-lg font-black text-cream">{money(total)} AUD</span>
-                  </div>
-                </div>
-
-                {/* Customer Information Form - No Password / No Login Required */}
-                <form onSubmit={handleSubmit} className="mt-6 space-y-4">
-                  <div>
-                    <h4 className="text-xs font-bold uppercase tracking-wider text-muted mb-1">
-                      Your Details
-                    </h4>
-                    <p className="text-[11px] text-muted">
-                      No payment needed now. We’ll email a confirmation and contact you to finalise your booking.
-                    </p>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold text-cream mb-1">
-                      Full Name
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      placeholder="e.g. John Smith"
-                      className="h-11 w-full rounded-xl bg-white px-4 text-sm text-cream placeholder:text-muted border border-[#D0D5DD] focus:outline-none focus:border-blue focus:ring-2 focus:ring-blue-light transition-all"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold text-cream mb-1">
-                      Email Address
-                    </label>
-                    <input
-                      type="email"
-                      required
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="e.g. john@example.com"
-                      className="h-11 w-full rounded-xl bg-white px-4 text-sm text-cream placeholder:text-muted border border-[#D0D5DD] focus:outline-none focus:border-blue focus:ring-2 focus:ring-blue-light transition-all"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold text-cream mb-1">
-                      Phone Number (Australian Mobile)
-                    </label>
-                    <input
-                      type="tel"
-                      required
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                      placeholder="e.g. 0412 345 678"
-                      className="h-11 w-full rounded-xl bg-white px-4 text-sm text-cream placeholder:text-muted border border-[#D0D5DD] focus:outline-none focus:border-blue focus:ring-2 focus:ring-blue-light transition-all"
-                    />
-                  </div>
+                <form onSubmit={submit} className="mt-6 space-y-4">
+                  <p className="text-sm text-muted">
+                    No payment needed now. We’ll email a confirmation and contact you to finalise your booking.
+                  </p>
+                  <Field label="Full name" id="co-name">
+                    <Input id="co-name" required value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" />
+                  </Field>
+                  <Field label="Email" id="co-email">
+                    <Input id="co-email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" />
+                  </Field>
+                  <Field label="Mobile" id="co-phone">
+                    <Input id="co-phone" type="tel" required value={phone} onChange={(e) => setPhone(e.target.value)} autoComplete="tel" placeholder="0412 345 678" />
+                  </Field>
 
                   {error && (
-                    <p role="alert" className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs font-medium text-red-700">
+                    <p role="alert" className="rounded-lg border border-danger/20 bg-danger-light px-4 py-3 text-sm text-danger">
                       {error}
                     </p>
                   )}
 
-                  <Button
-                    type="submit"
-                    size="lg"
-                    variant="primary"
-                    disabled={submitting}
-                    className="w-full mt-3 font-bold"
-                  >
-                    {submitting ? (
-                      <span className="flex items-center gap-2">
-                        <span className="h-4 w-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
-                        Submitting…
-                      </span>
-                    ) : (
-                      'Submit Booking'
-                    )}
+                  <Button type="submit" size="lg" loading={submitting} className="w-full">
+                    Submit booking
                   </Button>
                 </form>
-              </div>
+              </>
             )}
 
-            {/* Step 2: Booking Request Received */}
             {step === 'confirmed' && (
-              <div className="text-center">
-                <div className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-emerald-50 text-emerald-600 border border-emerald-200">
-                  <Check className="h-7 w-7" />
+              <>
+                <div className="grid h-12 w-12 place-items-center rounded-full bg-success-light text-success">
+                  <Check className="h-6 w-6" />
                 </div>
-
-                <h3 className="mt-4 text-2xl font-black text-cream">Booking Request Received!</h3>
-                <p className="mt-1 text-sm text-muted">
-                  A confirmation has been sent to <span className="font-bold text-cream">{email}</span>. No payment has been taken. Our team will contact you to finalise your tickets.
+                <h2 id="checkout-title" className="t-h2 mt-4 text-ink">
+                  Booking request received
+                </h2>
+                <p className="mt-2 text-sm text-muted">
+                  A confirmation has been sent to <span className="font-medium text-ink">{email}</span>. No payment has
+                  been taken. Our team will contact you to finalise your tickets.
                 </p>
 
-                {/* Clean E-Ticket Card */}
-                <div className="mt-6 rounded-2xl bg-surface-2 p-5 border border-line text-left relative overflow-hidden border-t-4 border-t-blue shadow-xs">
-                  <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-blue">
-                        Booking Request
-                      </span>
-                      <h4 className="text-base font-bold text-cream leading-snug mt-0.5 line-clamp-2">
-                        {event.title}
-                      </h4>
-                      <p className="mt-1 flex items-center gap-1.5 text-xs text-muted">
-                        <Pin className="h-3 w-3 text-blue" />
-                        {event.venue}, {event.metro}
-                      </p>
-                    </div>
-                    <div className="text-right shrink-0">
-                      <span className="text-[10px] uppercase font-bold text-muted">Booking Reference</span>
-                      <p className="font-mono text-sm font-black text-cream">{orderId}</p>
-                    </div>
+                <div className="mt-6 rounded-lg border border-line bg-surface p-4">
+                  <div className="min-w-0">
+                    <span className="t-label text-blue">Booking request</span>
+                    <h3 className="mt-1 line-clamp-2 text-sm font-semibold text-ink">{event.title}</h3>
+                    <p className="mt-1 text-xs text-muted">{when}</p>
+                    <p className="text-xs text-muted">{where}</p>
                   </div>
-
-                  <div className="my-4 border-t border-dashed border-line" />
-
-                  <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div className="mt-4 grid grid-cols-2 gap-4 border-t border-dashed border-line pt-4 text-xs">
                     <div>
-                      <span className="text-muted">Customer Name:</span>
-                      <p className="font-bold text-cream">{name}</p>
+                      <span className="text-muted">Reference</span>
+                      <p className="font-mono font-semibold text-ink">{orderId}</p>
                     </div>
                     <div>
-                      <span className="text-muted">Ticket Tier:</span>
-                      <p className="font-bold text-cream">
+                      <span className="text-muted">Tickets</span>
+                      <p className="font-semibold text-ink">
                         {qty} × {tier.name}
                       </p>
                     </div>
                     <div>
-                      <span className="text-muted">Date & Time:</span>
-                      <p className="font-bold text-cream">
-                        {fmtDate(event.start)} · {fmtTime(event.start)}
-                      </p>
+                      <span className="text-muted">Name</span>
+                      <p className="font-semibold text-ink">{name}</p>
                     </div>
                     <div>
-                      <span className="text-muted">Total Due:</span>
-                      <p className="font-black text-cream">{money(total)} AUD</p>
+                      <span className="text-muted">Total due</span>
+                      <p className="font-semibold text-ink">{money(total)}</p>
                     </div>
                   </div>
                 </div>
 
-                {/* Actions */}
-                <div className="mt-6 flex flex-col sm:flex-row gap-3">
-                  <Button variant="primary" size="md" onClick={handleClose} className="flex-1 font-bold">
+                <div className="mt-6">
+                  <Button size="md" onClick={close} className="w-full">
                     Done
                   </Button>
                 </div>
-              </div>
+              </>
             )}
           </motion.div>
         </div>
