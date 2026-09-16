@@ -82,8 +82,14 @@ Setup (once):
 2. Open the **SQL editor**, paste [`supabase/schema.sql`](supabase/schema.sql), run it.
    It creates the `events` table and row-level security: anyone can read, only a
    signed-in user can write.
-3. Copy the **Project URL** and **anon key** (Project Settings → API) into `.env.local`
-   (see `.env.example`) and into the Vercel project's environment variables.
+3. Set two variables in `.env.local` (see `.env.example`) and in the Vercel project's
+   environment variables:
+   - `VITE_SUPABASE_URL` — `https://<project-id>.supabase.co` (the id is in the
+     dashboard address bar, or Project Settings → Data API).
+   - `VITE_SUPABASE_PUBLISHABLE` — the **publishable** key (`sb_publishable_…`). It is
+     public by design; row-level security protects writes. Never use the secret key.
+     (Named without "KEY" because Vercel blocks saving `VITE_*KEY*` variables;
+     `VITE_SUPABASE_ANON_KEY` is still read as a fallback.)
 4. Redeploy. Open `/admin`, sign in, and choose **Import built-in events** to seed the
    table with the 35 shows that ship with the site.
 

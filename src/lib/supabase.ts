@@ -2,7 +2,9 @@ import { createClient } from '@supabase/supabase-js'
 import type { EventItem } from '../data/events'
 
 const url = import.meta.env.VITE_SUPABASE_URL as string | undefined
-const key = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined
+// Supabase's publishable key is public by design (RLS guards writes). Named without "KEY"
+// because Vercel refuses to save VITE_*KEY* variables; the old name is still accepted.
+const key = (import.meta.env.VITE_SUPABASE_PUBLISHABLE ?? import.meta.env.VITE_SUPABASE_ANON_KEY) as string | undefined
 
 /** Null when the env vars are missing — the site then runs on the built-in seed events. */
 export const supabase = url && key ? createClient(url, key) : null

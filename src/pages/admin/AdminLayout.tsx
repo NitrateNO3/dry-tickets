@@ -8,7 +8,7 @@ import { Button, Field, Input, Meta } from '../../components/Primitives'
 const steps = [
   'Create a project at supabase.com. Under Authentication → Providers → Email, turn off "Allow new users to sign up". Under Authentication → Users, add the admin user.',
   'Open the SQL editor, paste supabase/schema.sql from this repo and run it.',
-  'Copy the Project URL and anon key (Project Settings → API) into .env.local as VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY, and into the Vercel project\'s environment variables.',
+  'Set VITE_SUPABASE_URL (https://<project-id>.supabase.co) and VITE_SUPABASE_PUBLISHABLE (the sb_publishable_ key, never the secret key) in .env.local and in the Vercel project\'s environment variables.',
   'Redeploy, open /admin, sign in and choose "Import built-in events".',
 ]
 
