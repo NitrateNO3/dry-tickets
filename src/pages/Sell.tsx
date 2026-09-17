@@ -170,30 +170,30 @@ export default function Sell() {
               >
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <Field label="Your name" id="name">
-                    <Input id="name" name="name" required autoComplete="name" />
+                    <Input id="name" name="name" required maxLength={120} autoComplete="name" />
                   </Field>
                   <Field label="Email" id="email">
-                    <Input id="email" name="email" type="email" required autoComplete="email" />
+                    <Input id="email" name="email" type="email" required maxLength={254} autoComplete="email" />
                   </Field>
                 </div>
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <Field label="Phone" id="phone">
-                    <Input id="phone" name="phone" type="tel" autoComplete="tel" />
+                    <Input id="phone" name="phone" type="tel" maxLength={20} autoComplete="tel" />
                   </Field>
                   <Field label="Event or artist" id="event">
-                    <Input id="event" name="event" required />
+                    <Input id="event" name="event" required maxLength={200} />
                   </Field>
                 </div>
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <Field label="City" id="city">
-                    <Input id="city" name="city" />
+                    <Input id="city" name="city" maxLength={80} />
                   </Field>
                   <Field label="Expected capacity" id="capacity">
-                    <Input id="capacity" name="capacity" inputMode="numeric" />
+                    <Input id="capacity" name="capacity" inputMode="numeric" maxLength={7} />
                   </Field>
                 </div>
                 <Field label="Anything else" id="message" hint="Venue, proposed dates, ticket tiers.">
-                  <Textarea id="message" name="message" rows={4} />
+                  <Textarea id="message" name="message" rows={4} maxLength={2000} />
                 </Field>
                 <Button type="submit" size="lg" loading={status === 'sending'} className="w-full">
                   Send enquiry

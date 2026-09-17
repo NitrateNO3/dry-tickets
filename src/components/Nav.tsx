@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, NavLink, useNavigate, useSearchParams } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
-import { AUSTRALIAN_CITIES, categories, liveEvents } from '../data/events'
+import { AUSTRALIAN_CITIES } from '../data/events'
+import { useEvents } from '../lib/events'
 import { cx, money } from '../lib/format'
 import { Button, Chip, Input, useDialog } from './Primitives'
 import { ChevronDown, Close, Menu, Pin, Search, Ticket } from './Icons'
@@ -40,6 +41,7 @@ const pop = {
 }
 
 export function Nav() {
+  const { live, categories } = useEvents()
   const [openMobile, setOpenMobile] = useState(false)
   const [openLocation, setOpenLocation] = useState(false)
   const [openCategories, setOpenCategories] = useState(false)
@@ -77,7 +79,7 @@ export function Nav() {
 
   const results =
     q.trim().length > 1
-      ? liveEvents
+      ? live
           .filter((e) =>
             [e.title, e.metro, e.category, ...e.artists.map((a) => a.name)].join(' ').toLowerCase().includes(q.toLowerCase()),
           )
@@ -111,14 +113,14 @@ export function Nav() {
                 <motion.div {...pop} className={cx(panel, 'left-0 w-64')}>
                   <button type="button" onClick={() => selectCity(ALL)} className={item(selectedCity === ALL)}>
                     <span>{ALL}</span>
-                    <span className="text-xs text-faint">{liveEvents.length}</span>
+                    <span className="text-xs text-faint">{live.length}</span>
                   </button>
                   {AUSTRALIAN_CITIES.map((c) => (
                     <button key={c.name} type="button" onClick={() => selectCity(c.name)} className={item(selectedCity === c.name)}>
                       <span>
                         {c.name}, {c.state}
                       </span>
-                      <span className="text-xs text-faint">{liveEvents.filter((e) => e.metro === c.name).length}</span>
+                      <span className="text-xs text-faint">{live.filter((e) => e.metro === c.name).length}</span>
                     </button>
                   ))}
                 </motion.div>
@@ -156,7 +158,7 @@ export function Nav() {
                         className={item(false)}
                       >
                         <span>{c}</span>
-                        <span className="text-xs text-faint">{liveEvents.filter((e) => e.category === c).length}</span>
+                        <span className="text-xs text-faint">{live.filter((e) => e.category === c).length}</span>
                       </Link>
                     ))}
                   </motion.div>

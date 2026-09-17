@@ -1,18 +1,20 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { AUSTRALIAN_CITIES, categories, liveEvents } from '../data/events'
+import { AUSTRALIAN_CITIES } from '../data/events'
+import { useEvents } from '../lib/events'
 import { Button, Input, inputCls } from './Primitives'
 import { ChevronDown, Pin, Search } from './Icons'
 
 const ALL = 'All Australia'
 
 export function Hero() {
+  const { live, categories } = useEvents()
   const [q, setQ] = useState('')
   const [city, setCity] = useState(ALL)
   const navigate = useNavigate()
 
-  const popular = categories.filter((c) => liveEvents.filter((e) => e.category === c).length >= 2)
+  const popular = categories.filter((c) => live.filter((e) => e.category === c).length >= 2)
 
   const search = (e: React.FormEvent) => {
     e.preventDefault()

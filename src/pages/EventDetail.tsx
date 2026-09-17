@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { getEvent, liveEvents } from '../data/events'
+import { useEvents } from '../lib/events'
 import { cx, fmtDate, fmtTime, money } from '../lib/format'
 import { blurbOf, plural } from '../lib/copy'
 import { PosterCard } from '../components/PosterCard'
@@ -20,8 +20,9 @@ const notes = [
 ]
 
 export default function EventDetail() {
+  const { get, live, loading } = useEvents()
   const { slug } = useParams()
-  const event = slug ? getEvent(slug) : undefined
+  const event = slug ? get(slug) : undefined
 
   const [tierIdx, setTierIdx] = useState(0)
   const [qty, setQty] = useState(2)
@@ -31,7 +32,7 @@ export default function EventDetail() {
   const related = useMemo(
     () =>
       event
-        ? liveEvents
+        ? live
             .filter(
               (e) =>
                 e.slug !== event.slug &&
@@ -41,10 +42,22 @@ export default function EventDetail() {
             )
             .slice(0, 4)
         : [],
-    [event],
+    [event, live],
   )
 
-  if (!event) return <NotFound />
+  if (!event) {
+    if (!loading) return <NotFound />
+    return (
+      <div className="wrap page-top grid grid-cols-1 gap-10 lg:grid-cols-[400px_1fr]" aria-busy>
+        <div className="skeleton aspect-[460/651] rounded-xl" />
+        <div className="space-y-4">
+          <div className="skeleton h-6 w-24 rounded-md" />
+          <div className="skeleton h-10 w-3/4 rounded-md" />
+          <div className="skeleton h-32 rounded-xl" />
+        </div>
+      </div>
+    )
+  }
 
   const tiers = [...event.tiers].sort((a, b) => a.price - b.price)
   const tier = tiers[tierIdx] || tiers[0]
@@ -176,7 +189,7 @@ export default function EventDetail() {
                         }}
                         className="mt-6 space-y-3"
                       >
-                        <Input type="email" required placeholder="you@example.com" aria-label="Email address" autoComplete="email" />
+                        <Input type="email" required maxLength={254} placeholder="you@example.com" aria-label="Email address" autoComplete="email" />
                         <Button type="submit" loading={notify === 'sending'} className="w-full">
                           Notify me
                         </Button>

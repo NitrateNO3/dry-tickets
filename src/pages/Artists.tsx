@@ -1,8 +1,8 @@
 import { Link } from 'react-router-dom'
-import { allArtists, liveEvents } from '../data/events'
+import { useEvents } from '../lib/events'
 import { fmtDateShort } from '../lib/format'
 import { plural } from '../lib/copy'
-import { Img, Meta, Reveal, SectionHead } from '../components/Primitives'
+import { Img, Meta, Reveal, SectionHead, SkeletonCard } from '../components/Primitives'
 import { Arrow } from '../components/Icons'
 
 const alumni = [
@@ -14,11 +14,12 @@ const alumni = [
 ]
 
 export default function Artists() {
+  const { artists, live, loading } = useEvents()
   return (
     <div className="wrap page-top">
       <Meta
         title="Artists"
-        description={`${allArtists.length} artists touring Australia and New Zealand with tickets on Dry Tickets, and the names who have played our stages before.`}
+        description={`${artists.length} artists touring Australia and New Zealand with tickets on Dry Tickets, and the names who have played our stages before.`}
       />
 
       <div className="max-w-3xl">
@@ -33,8 +34,9 @@ export default function Artists() {
         <Reveal>
           <SectionHead title="On tour now" />
           <div className="grid grid-cols-1 gap-6 min-[480px]:grid-cols-2 lg:grid-cols-4">
-            {allArtists.map((a) => {
-              const dates = liveEvents.filter((e) => e.artists.some((x) => x.name === a.name))
+            {loading && Array.from({ length: 8 }).map((_, i) => <SkeletonCard key={i} />)}
+            {artists.map((a) => {
+              const dates = live.filter((e) => e.artists.some((x) => x.name === a.name))
               return (
                 <Link key={a.name} to={`/events?q=${encodeURIComponent(a.name)}`} className="card card-hover group block overflow-hidden">
                   <Img src={a.image!} alt={a.name} loading="lazy" className="aspect-[4/5] bg-surface" />

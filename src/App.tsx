@@ -10,6 +10,9 @@ import Venues from './pages/Venues'
 import Sell from './pages/Sell'
 import About from './pages/About'
 import NotFound from './pages/NotFound'
+import AdminLayout from './pages/admin/AdminLayout'
+import AdminEvents from './pages/admin/AdminEvents'
+import AdminEventForm from './pages/admin/AdminEventForm'
 
 function ScrollToTop() {
   const { pathname, search, hash } = useLocation()
@@ -37,6 +40,11 @@ export default function App() {
           <Route path="/venues" element={<Venues />} />
           <Route path="/sell" element={<Sell />} />
           <Route path="/about" element={<About />} />
+          <Route path="/admin" element={<AdminLayout />}>
+            <Route index element={<AdminEvents />} />
+            <Route path="new" element={<AdminEventForm />} />
+            <Route path=":slug" element={<AdminEventForm />} />
+          </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>

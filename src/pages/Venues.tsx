@@ -1,9 +1,9 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { liveEvents } from '../data/events'
+import { useEvents } from '../lib/events'
 import { plural } from '../lib/copy'
 import { PosterCard } from '../components/PosterCard'
-import { Button, Chip, Img, Meta, Reveal, SectionHead } from '../components/Primitives'
+import { Button, Chip, Img, Meta, Reveal, SectionHead, SkeletonCard } from '../components/Primitives'
 import { Arrow, Pin } from '../components/Icons'
 
 const NOTABLE_VENUES = [
@@ -58,16 +58,17 @@ const NOTABLE_VENUES = [
 ]
 
 export default function Venues() {
+  const { live, loading } = useEvents()
   const venueStats = useMemo(() => {
     const map = new Map<string, { name: string; metro: string; count: number }>()
-    for (const e of liveEvents) {
+    for (const e of live) {
       if (!e.venue) continue
       const v = map.get(e.venue)
       if (v) v.count += 1
       else map.set(e.venue, { name: e.venue, metro: e.metro, count: 1 })
     }
     return [...map.values()]
-  }, [])
+  }, [live])
 
   const cities = useMemo(() => [...new Set(venueStats.map((v) => v.metro))].sort(), [venueStats])
   const [city, setCity] = useState('all')
@@ -162,7 +163,8 @@ export default function Venues() {
             }
           />
           <div className="grid grid-cols-1 gap-6 min-[480px]:grid-cols-2 lg:grid-cols-4">
-            {liveEvents.slice(0, 4).map((e, i) => (
+            {loading && Array.from({ length: 4 }).map((_, i) => <SkeletonCard key={i} />)}
+            {live.slice(0, 4).map((e, i) => (
               <PosterCard key={e.slug} event={e} index={i} />
             ))}
           </div>

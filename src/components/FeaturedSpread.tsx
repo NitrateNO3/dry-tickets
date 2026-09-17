@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import StackSpread, { type StackSpreadCard } from '@/components/ui/stack-spread'
-import { featuredEvents, liveEvents, type EventItem } from '../data/events'
+import type { EventItem } from '../data/events'
+import { useEvents } from '../lib/events'
 import { fmtDateShort } from '../lib/format'
 import { Arrow } from './Icons'
 
@@ -20,9 +21,9 @@ const LAYOUT = [
 ]
 const SMALL_START_X = [-25, -15, -5, 5, 15, 25]
 
-function pickEvents(): EventItem[] {
+function pickEvents(featured: EventItem[], live: EventItem[]): EventItem[] {
   const out: EventItem[] = []
-  for (const e of [...featuredEvents, ...liveEvents]) {
+  for (const e of [...featured, ...live]) {
     if (out.length === LAYOUT.length) break
     const show = e.title.split(' - ')[0]
     if (!out.some((p) => p.slug === e.slug || p.title.split(' - ')[0] === show)) out.push(e)
@@ -31,7 +32,8 @@ function pickEvents(): EventItem[] {
 }
 
 export function FeaturedSpread() {
-  const picks = pickEvents()
+  const { featured, live } = useEvents()
+  const picks = pickEvents(featured, live)
   let smallSlot = 0
 
   const cards: (StackSpreadCard & { event: EventItem })[] = picks.map((event, i) => {

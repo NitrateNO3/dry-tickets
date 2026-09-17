@@ -1,4 +1,4 @@
-import { events } from '../data/events'
+import { useEvents } from '../lib/events'
 import { Button, Meta, Reveal, SectionHead } from '../components/Primitives'
 import { Arrow, Insta, Phone } from '../components/Icons'
 
@@ -40,6 +40,7 @@ const details = [
 ]
 
 export default function About() {
+  const { events } = useEvents()
   return (
     <div className="wrap page-top">
       <Meta

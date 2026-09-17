@@ -9,6 +9,7 @@ const links = [
   { to: '/sell', label: 'Sell tickets' },
   { to: '/about', label: 'About' },
   { to: '/about#contact', label: 'Contact' },
+  { to: '/admin', label: 'Admin' },
 ]
 
 export function Footer() {
