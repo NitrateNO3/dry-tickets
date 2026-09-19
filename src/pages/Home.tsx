@@ -1,12 +1,12 @@
 import { Link } from 'react-router-dom'
-import { AUSTRALIAN_CITIES } from '../data/events'
 import { useEvents } from '../lib/events'
 import { monthKey } from '../lib/format'
 import { plural } from '../lib/copy'
 import { Hero } from '../components/Hero'
+import { CategoryBrowse, CityBrowse } from '../components/BrowseSections'
 import { EventRow, PosterCard } from '../components/PosterCard'
 import { Button, GroupHead, Meta, Reveal, SectionHead, SkeletonCard } from '../components/Primitives'
-import { Arrow, Bolt, Check, Pin, Shield, Ticket } from '../components/Icons'
+import { Arrow, Bolt, Check, Shield, Ticket } from '../components/Icons'
 
 const guarantees = [
   {
@@ -81,28 +81,7 @@ export default function Home() {
         </Reveal>
       </section>
 
-      <section className="wrap section">
-        <Reveal>
-          <SectionHead title="Browse by category" />
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {categoryCounts.map((c) => (
-              <Link
-                key={c.name}
-                to={`/events?category=${encodeURIComponent(c.name)}`}
-                className="card card-hover group flex items-center justify-between p-4"
-              >
-                <span>
-                  <span className="block text-base font-semibold text-ink">{c.name}</span>
-                  <span className="text-sm text-muted">
-                    {c.count} {plural(c.count, 'event')}
-                  </span>
-                </span>
-                <Arrow className="h-4 w-4 text-faint transition-colors group-hover:text-blue" />
-              </Link>
-            ))}
-          </div>
-        </Reveal>
-      </section>
+      <CategoryBrowse items={categoryCounts} />
 
       <section className="wrap section">
         <Reveal>
@@ -113,32 +92,7 @@ export default function Home() {
         </Reveal>
       </section>
 
-      <section className="wrap section">
-        <Reveal>
-          <SectionHead title="Browse by city" />
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-            {AUSTRALIAN_CITIES.map((c) => {
-              const count = live.filter((e) => e.metro === c.name).length
-              return (
-                <Link key={c.name} to={`/events?city=${encodeURIComponent(c.name)}`} className="card card-hover group p-4">
-                  <span className="flex items-center justify-between">
-                    <span className="grid h-8 w-8 place-items-center rounded-lg bg-blue-light text-blue">
-                      <Pin className="h-4 w-4" />
-                    </span>
-                    <span className="t-label text-faint">{c.state}</span>
-                  </span>
-                  <span className="mt-6 block text-base font-semibold text-ink transition-colors group-hover:text-blue">
-                    {c.name}
-                  </span>
-                  <span className="text-sm text-muted">
-                    {count > 0 ? `${count} upcoming ${plural(count, 'event')}` : 'No shows listed yet'}
-                  </span>
-                </Link>
-              )
-            })}
-          </div>
-        </Reveal>
-      </section>
+      <CityBrowse counts={(city) => live.filter((e) => e.metro === city).length} />
 
       <section className="wrap section">
         <Reveal>
@@ -186,29 +140,45 @@ export default function Home() {
 
       <section className="wrap section">
         <Reveal>
-          <div className="card grid grid-cols-1 gap-10 p-8 sm:p-12 lg:grid-cols-2 lg:items-center">
-            <div>
-              <span className="t-label text-blue">For organisers</span>
-              <h2 className="t-h2 mt-3 text-ink">Selling a show? We run the box office.</h2>
-              <p className="mt-4 max-w-lg text-muted">
+          {/* Dark espresso panel with a cursor-following spotlight */}
+          <div
+            onMouseMove={(e) => {
+              const r = e.currentTarget.getBoundingClientRect()
+              e.currentTarget.style.setProperty('--spot-x', `${e.clientX - r.left}px`)
+              e.currentTarget.style.setProperty('--spot-y', `${e.clientY - r.top}px`)
+            }}
+            className="group relative grid grid-cols-1 gap-10 overflow-hidden rounded-[28px] border border-[rgba(238,228,218,0.16)] bg-[linear-gradient(135deg,#16110e,#2b211b)] p-8 shadow-[0_32px_90px_-56px_rgba(20,16,12,0.72)] sm:p-12 lg:grid-cols-2 lg:items-center"
+          >
+            <span
+              aria-hidden
+              className="pointer-events-none absolute inset-0 opacity-50 transition-opacity duration-300 group-hover:opacity-100"
+              style={{
+                background:
+                  'radial-gradient(440px circle at var(--spot-x, 25%) var(--spot-y, 35%), rgba(255,255,255,0.14), transparent 55%)',
+              }}
+            />
+            <div className="relative">
+              <span className="t-label text-white/60">For organisers</span>
+              <h2 className="t-h2 mt-3 text-white">Selling a show? We run the box office.</h2>
+              <p className="mt-4 max-w-lg text-white/70">
                 Online and counter sales, reserved seating maps, door scanning and printed tickets — set up by our
                 team and reported to you live on the night.
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
-                <Button to="/sell">
+                <Button to="/sell" variant="light">
                   List your event
                   <Arrow className="h-4 w-4" />
                 </Button>
-                <Button href="tel:0452337387" variant="outline">
+                <Button href="tel:0452337387" variant="outline-light">
                   Call 0452 337 387
                 </Button>
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="relative grid grid-cols-2 gap-4">
               {stats.map((s) => (
-                <div key={s.label} className="rounded-lg border border-line bg-surface p-6">
-                  <p className="t-h2 text-ink">{s.value}</p>
-                  <p className="mt-1 text-sm text-muted">{s.label}</p>
+                <div key={s.label} className="rounded-2xl border border-white/10 bg-white/[0.04] p-6 backdrop-blur-sm">
+                  <p className="t-h2 text-white">{s.value}</p>
+                  <p className="mt-1 text-sm text-white/60">{s.label}</p>
                 </div>
               ))}
             </div>

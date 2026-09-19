@@ -1,4 +1,15 @@
 @import 'tailwindcss';
+/*
+ * HeroUI v3 — only what SearchField needs. The full bundle also ships generic `.card` and
+ * `.skeleton` classes that clash with ours. Loaded before our @theme so the site's tokens win.
+ */
+@import 'tw-animate-css';
+@import '@heroui/styles/base' layer(base);
+@import '@heroui/styles/themes/default';
+@import '@heroui/styles/components/close-button.css' layer(components);
+@import '@heroui/styles/components/search-field.css' layer(components);
+@import '@heroui/styles/utilities';
+@import '@heroui/styles/variants';
 
 /*
  * Design tokens. Everything on the site draws from this block:

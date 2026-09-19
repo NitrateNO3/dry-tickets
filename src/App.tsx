@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { Route, Routes, useLocation } from 'react-router-dom'
 import { Nav } from './components/Nav'
 import { Footer } from './components/Footer'
+import { CityPicker } from './components/CityPicker'
 import Home from './pages/Home'
 import Events from './pages/Events'
 import EventDetail from './pages/EventDetail'
@@ -30,6 +31,7 @@ export default function App() {
     <div className="min-h-screen">
       <ScrollToTop />
       <Nav />
+      <CityPicker />
       <main>
         <Routes>
           <Route path="/" element={<Home />} />

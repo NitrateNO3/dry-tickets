@@ -74,7 +74,7 @@ type ButtonProps = {
   to?: string
   href?: string
   onClick?: () => void
-  variant?: 'primary' | 'outline' | 'ghost'
+  variant?: keyof typeof variants
   size?: 'sm' | 'md' | 'lg'
   className?: string
   type?: 'button' | 'submit'
@@ -92,6 +92,9 @@ const variants = {
   primary: 'bg-blue text-white hover:bg-blue-dark',
   outline: 'bg-white border border-line text-ink hover:border-line-strong hover:bg-surface',
   ghost: 'text-muted hover:text-ink hover:bg-surface',
+  // For dark panels
+  light: 'bg-white text-ink hover:bg-white/90',
+  'outline-light': 'border border-white/40 text-white hover:border-white/70 hover:bg-white/10',
 }
 
 export function Spinner({ className }: { className?: string }) {
