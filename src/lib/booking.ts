@@ -1,10 +1,7 @@
 /**
- * Booking requests go to the `booking` Supabase Edge Function (supabase/functions/booking),
- * which looks up the real price and emails the bookings inbox and the buyer via Gmail.
+ * Booking requests go to the Vercel function api/booking.ts, which looks up the real price and
+ * emails the bookings inbox and the buyer via Gmail.
  */
-import { FunctionsHttpError } from '@supabase/supabase-js'
-import { supabase } from './supabase'
-
 export const BOOKINGS_INBOX = 'ticketbookingau@gmail.com'
 
 export type BookingRequest = {
@@ -22,16 +19,13 @@ export type BookingResult = { reference: string; confirmationSent: boolean }
 export class BookingError extends Error {}
 
 export async function submitBooking(booking: BookingRequest): Promise<BookingResult> {
-  if (!supabase) throw new Error('Supabase is not configured — set VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE.')
-
-  const { data, error } = await supabase.functions.invoke<BookingResult>('booking', { body: booking })
-  if (error) {
-    if (error instanceof FunctionsHttpError) {
-      const res = error.context as Response
-      const body = await res.json().catch(() => null)
-      if (res.status < 500 && typeof body?.error === 'string') throw new BookingError(body.error)
-    }
-    throw error
-  }
-  return data!
+  const res = await fetch('/api/booking', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(booking),
+  })
+  const body = await res.json().catch(() => null)
+  if (res.ok && body?.reference) return body as BookingResult
+  if (res.status < 500 && typeof body?.error === 'string') throw new BookingError(body.error)
+  throw new Error(`Booking API ${res.status}${body?.error ? `: ${body.error}` : ''}`)
 }

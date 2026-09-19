@@ -71,32 +71,29 @@ Two things are derived rather than copied:
 ## Booking requests (email)
 
 "Get Tickets" collects the buyer's details and submits a booking request. No payment is
-taken and nothing is stored. The site calls the `booking` Supabase Edge Function
-(`supabase/functions/booking/index.ts`), which:
+taken and nothing is stored. The site posts to the Vercel function
+[`api/booking.ts`](api/booking.ts), which:
 
-- checks the details and re-reads the event, ticket type and price from the database, so
-  the total in the emails can't be changed from the browser;
+- checks the details and looks up the event, ticket type and price itself (Supabase when
+  configured, otherwise the built-in list), so the total can't be changed from the browser;
 - emails the full request to `ticketbookingau@gmail.com` (Reply-To is the buyer), then a
   confirmation to the buyer (Reply-To is the inbox), both sent from the Gmail account;
-- refuses more than 5 requests per hour from one IP and 150 per day overall
-  (`supabase/bookings.sql`), which keeps well inside Gmail's ~500 emails/day.
+- allows 5 requests per hour per IP (per warm instance; Gmail's ~500 emails/day is the backstop).
 
-**Setup (once):** run `npm run setup:booking` and follow the prompts. It logs in to Supabase,
-creates the rate-limit table, stores the Gmail app password as a Supabase secret, deploys
-the function, sends a test booking to the inbox, and prints the two Vercel variables.
-Before running it:
+Setup (once):
 
-- **Gmail app password.** Sign in to `ticketbookingau@gmail.com`, turn on
-  [2-Step Verification](https://myaccount.google.com/signinoptions/twosv), then create an
-  app password at <https://myaccount.google.com/apppasswords>. That page returns 404 until
-  2-Step Verification is on.
-- **Events in the database.** The function prices bookings from the `events` table, so it
-  must not be empty: `/admin` → **Import built-in events** (see Admin panel below).
+1. Sign in to `ticketbookingau@gmail.com`, turn on
+   [2-Step Verification](https://myaccount.google.com/signinoptions/twosv), then create an
+   app password at <https://myaccount.google.com/apppasswords> (that page returns 404 until
+   2-Step Verification is on).
+2. Vercel → project → **Settings → Environment Variables**, add for Production:
+   `GMAIL_USER` = `ticketbookingau@gmail.com`, `GMAIL_APP_PASSWORD` = the app password.
+   Optional `BOOKINGS_INBOX` sends the details email somewhere else.
+3. **Deployments → ⋯ → Redeploy**, then place a test booking. Errors show under the
+   deployment's **Logs** (filter `/api/booking`).
 
-Errors show under Supabase → **Edge Functions → booking → Logs**.
-
-The 4.5% booking fee is set in two places: `src/pages/EventDetail.tsx` (what the buyer
-sees) and the function (what the emails say). Change both together.
+Local testing needs `vercel dev` (plain `npm run dev` doesn't serve `/api`).
+The booking fee and ticket limit live in `src/lib/pricing.ts`, shared by the page and the function.
 
 ## Admin panel (Supabase)
 
@@ -153,7 +150,7 @@ enforced in the database and by response headers, not by the browser code.
 | Login abuse | Supabase Auth rate-limits sign-in per IP; the form shows a clear message on 429 and never reveals whether an email exists. |
 | Headers | `vercel.json`: CSP, HSTS, `nosniff`, `X-Frame-Options: DENY`, Referrer-Policy, Permissions-Policy, COOP. HTTP is redirected to HTTPS by Vercel. |
 | Dependencies | `npm audit` clean; Dependabot (`.github/dependabot.yml`) opens weekly update PRs. |
-| Bookings | The `booking` Edge Function validates input, prices the order from the database, escapes everything placed in the emails, and rate-limits by hashed IP. The Gmail app password exists only as a Supabase secret. |
+| Bookings | `api/booking.ts` validates input, prices the order server-side, escapes everything placed in the emails, and rate-limits by IP. The Gmail app password exists only as a Vercel environment variable. |
 | Payments | No payment is taken: "Get Tickets" sends a booking request by email. A real integration must use a hosted payment form (e.g. Stripe Elements) — never collect or store card numbers. |
 
 One-time setup, in order:
@@ -170,7 +167,7 @@ If the Supabase project URL changes, update `connect-src` in the CSP in `vercel.
 
 This is a front-end redesign. No payment is taken: checkout sends a booking request by
 email (see above). Presale signup and the organiser enquiry form show a loading state
-and a confirmation but post nowhere (search for `ponytail: mocked`).
+and a confirmation but post nowhere (search for `ponytail`).
 
 ## ⚠️ Placeholder copy — not Dry Tickets' real terms
 
@@ -180,7 +177,7 @@ with real figures before this goes anywhere near production:
 
 | Placeholder claim | Location |
 | --- | --- |
-| 4.5% booking fee (drives the checkout total) | `src/pages/EventDetail.tsx` |
+| 4.5% booking fee (drives the checkout total) | `src/lib/pricing.ts` |
 | "No setup fee — we earn on tickets sold" | `src/pages/Sell.tsx` |
 | "Event page live within 48 hours" | `src/pages/Sell.tsx` |
 | "Dedicated account manager on the night" | `src/pages/Sell.tsx` |

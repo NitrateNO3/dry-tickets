@@ -72,7 +72,7 @@ export function CheckoutModal({ isOpen, onClose, event, tier, qty, subtotal, fee
       if (err instanceof BookingError) {
         setError(err.message)
       } else {
-        // In dev, surface the real cause (usually missing Supabase config or function secrets).
+        // In dev, surface the real cause (usually missing GMAIL_* variables, or /api not served by `vite` — use `vercel dev`).
         const detail = import.meta.env.DEV && err instanceof Error ? ` (${err.message})` : ''
         setError(`We couldn’t submit your booking right now. Please try again, or email ${BOOKINGS_INBOX}.${detail}`)
       }

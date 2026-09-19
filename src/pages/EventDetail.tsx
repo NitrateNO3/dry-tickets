@@ -8,10 +8,8 @@ import { CheckoutModal } from '../components/CheckoutModal'
 import { Badge, Button, Img, Input, Meta, Reveal, SectionHead } from '../components/Primitives'
 import { Arrow, Cal, Check, Pin, Shield, Star, Ticket } from '../components/Icons'
 import NotFound from './NotFound'
+import { BOOKING_FEE_RATE, MAX_TICKETS } from '../lib/pricing'
 
-// ponytail: placeholder rate (see README) — replace with the real fee schedule.
-// Keep in sync with BOOKING_FEE_RATE in supabase/functions/booking/index.ts.
-const BOOKING_FEE_RATE = 0.045
 
 const notes = [
   'Mobile e-ticket accepted at the door',
@@ -250,8 +248,8 @@ export default function EventDetail() {
                       </span>
                       <button
                         type="button"
-                        onClick={() => setQty((n) => Math.min(10, n + 1))}
-                        disabled={qty >= 10}
+                        onClick={() => setQty((n) => Math.min(MAX_TICKETS, n + 1))}
+                        disabled={qty >= MAX_TICKETS}
                         aria-label="More tickets"
                         className="grid h-9 w-9 place-items-center rounded-lg border border-line bg-white text-ink transition-colors hover:border-line-strong disabled:opacity-50 cursor-pointer"
                       >

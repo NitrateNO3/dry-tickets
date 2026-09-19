@@ -1,28 +1,23 @@
 /**
- * Booking request emails. The site posts { slug, tier, qty, name, email, phone }; this function
- * re-reads the event and price from the database (so the browser can't change the total),
- * then sends a details email to the bookings inbox and a confirmation to the buyer via Gmail.
+ * POST /api/booking — booking request emails (Vercel function).
  *
- * Secrets (supabase secrets set …): GMAIL_USER, GMAIL_APP_PASSWORD, optional BOOKINGS_INBOX.
- * SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are provided by Supabase.
- * Deploy with --no-verify-jwt: the site calls it signed out with the publishable key.
+ * The site posts { slug, tier, qty, name, email, phone }. The price is looked up here (Supabase
+ * when configured, otherwise the built-in events), so the browser can't change the total. Then a
+ * details email goes to the bookings inbox and a confirmation to the buyer, both via Gmail.
+ *
+ * Vercel env vars: GMAIL_USER, GMAIL_APP_PASSWORD (a Google app password), optional BOOKINGS_INBOX.
  */
-import { createClient } from 'npm:@supabase/supabase-js@2'
-import nodemailer from 'npm:nodemailer@6'
+import nodemailer from 'nodemailer'
+import { seedEvents } from '../src/data/events.js'
+import { BOOKING_FEE_RATE, MAX_TICKETS } from '../src/lib/pricing.js'
 
-// Keep in sync with BOOKING_FEE_RATE in src/pages/EventDetail.tsx.
-const BOOKING_FEE_RATE = 0.045
-const MAX_QTY = 10
 const TZ = 'Australia/Sydney'
+const GMAIL_USER = process.env.GMAIL_USER ?? ''
+const GMAIL_APP_PASSWORD = (process.env.GMAIL_APP_PASSWORD ?? '').replace(/\s/g, '')
+const INBOX = process.env.BOOKINGS_INBOX || GMAIL_USER
+const SUPABASE_URL = process.env.VITE_SUPABASE_URL
+const SUPABASE_KEY = process.env.VITE_SUPABASE_PUBLISHABLE ?? process.env.VITE_SUPABASE_ANON_KEY
 
-const GMAIL_USER = Deno.env.get('GMAIL_USER') ?? ''
-const GMAIL_APP_PASSWORD = Deno.env.get('GMAIL_APP_PASSWORD') ?? ''
-const INBOX = Deno.env.get('BOOKINGS_INBOX') || GMAIL_USER
-const SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-
-const db = createClient(Deno.env.get('SUPABASE_URL') ?? '', SERVICE_KEY, { auth: { persistSession: false } })
-
-// Port 465: Supabase blocks outbound 25 and 587.
 const mailer = nodemailer.createTransport({
   host: 'smtp.gmail.com',
   port: 465,
@@ -30,22 +25,36 @@ const mailer = nodemailer.createTransport({
   auth: { user: GMAIL_USER, pass: GMAIL_APP_PASSWORD },
 })
 
-const cors = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-}
-
-const json = (status: number, body: unknown) =>
-  new Response(JSON.stringify(body), { status, headers: { ...cors, 'Content-Type': 'application/json' } })
+type Tier = { name: string; price: number; availability: string }
+type EventRow = { title: string; start?: string | null; venue?: string | null; metro: string; tiers: Tier[] }
 
 /** Errors whose message is safe to show the buyer. */
 class UserError extends Error {
-  constructor(message: string, readonly status = 400) {
+  status: number
+  constructor(message: string, status = 400) {
     super(message)
+    this.status = status
   }
 }
 
+const json = (status: number, body: unknown) =>
+  new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } })
+
+/* ------------------------------------------------------------ rate limit */
+// Per warm instance only, so it's a speed bump, not a guarantee. Gmail's ~500/day cap is the backstop.
+const HOUR = 3_600_000
+const hits = new Map<string, number[]>()
+function allow(ip: string) {
+  const now = Date.now()
+  const recent = (hits.get(ip) ?? []).filter((t) => now - t < HOUR)
+  if (recent.length >= 5) return false
+  recent.push(now)
+  hits.set(ip, recent)
+  if (hits.size > 5000) hits.clear()
+  return true
+}
+
+/* ------------------------------------------------------------ input */
 const EMAIL_RE = /^[^\s@<>"]+@[^\s@<>"]+\.[^\s@<>"]+$/
 const PHONE_RE = /^[0-9+()\-.\s]{6,20}$/
 
@@ -58,8 +67,8 @@ function text(v: unknown, field: string, max: number) {
 
 function parse(body: Record<string, unknown>) {
   const qty = body.qty
-  if (!Number.isInteger(qty) || (qty as number) < 1 || (qty as number) > MAX_QTY) {
-    throw new UserError(`Choose between 1 and ${MAX_QTY} tickets.`)
+  if (typeof qty !== 'number' || !Number.isInteger(qty) || qty < 1 || qty > MAX_TICKETS) {
+    throw new UserError(`Choose between 1 and ${MAX_TICKETS} tickets.`)
   }
   const email = text(body.email, 'email', 254)
   if (!EMAIL_RE.test(email)) throw new UserError('Please enter a valid email address.')
@@ -68,35 +77,39 @@ function parse(body: Record<string, unknown>) {
   return {
     slug: text(body.slug, 'event', 160),
     tier: text(body.tier, 'ticket type', 120),
-    qty: qty as number,
+    qty,
     name: text(body.name, 'name', 120),
     email,
     phone,
   }
 }
 
+/** Same source the site shows: Supabase when configured, otherwise the built-in list. */
+async function findEvent(slug: string): Promise<EventRow | undefined> {
+  if (SUPABASE_URL && SUPABASE_KEY) {
+    const url = `${SUPABASE_URL}/rest/v1/events?select=title,start,venue,metro,tiers&slug=eq.${encodeURIComponent(slug)}`
+    const res = await fetch(url, { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } })
+    if (!res.ok) throw new Error(`Supabase ${res.status}: ${await res.text()}`)
+    return ((await res.json()) as EventRow[])[0]
+  }
+  return seedEvents.find((e) => e.slug === slug)
+}
+
+/* ------------------------------------------------------------ emails */
 const esc = (s: string) =>
   s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!)
 
 const money = (n: number) =>
   new Intl.NumberFormat('en-AU', { style: 'currency', currency: 'AUD', minimumFractionDigits: 2 }).format(n) + ' AUD'
 
-const when = (iso: string | null) => {
+const when = (iso?: string | null) => {
   if (!iso) return 'Date to be announced'
   const d = new Date(iso)
   const f = (o: Intl.DateTimeFormatOptions) => new Intl.DateTimeFormat('en-AU', { timeZone: TZ, ...o }).format(d)
   return `${f({ weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })} · ${f({ hour: 'numeric', minute: '2-digit', hour12: true }).toLowerCase()}`
 }
 
-async function sha256(s: string) {
-  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s))
-  return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, '0')).join('')
-}
-
-const newReference = () => {
-  const n = crypto.getRandomValues(new Uint32Array(1))[0] % 900000
-  return `DT-${new Date().getFullYear()}-${100000 + n}`
-}
+const newReference = () => `DT-${new Date().getFullYear()}-${100000 + (crypto.getRandomValues(new Uint32Array(1))[0] % 900000)}`
 
 type Details = Record<'reference' | 'name' | 'email' | 'phone' | 'event' | 'date' | 'venue' | 'tickets' | 'subtotal' | 'fee' | 'total' | 'submitted', string>
 
@@ -124,9 +137,9 @@ const orderRows = (d: Details) =>
   ])
 
 const inboxEmail = (d: Details) => ({
-  from: `"Dry Tickets Website" <${GMAIL_USER}>`,
+  from: { name: 'Dry Tickets Website', address: GMAIL_USER },
   to: INBOX,
-  replyTo: `"${d.name.replace(/"/g, '')}" <${d.email}>`,
+  replyTo: { name: d.name, address: d.email },
   subject: `New booking request: ${d.tickets} — ${d.event} (${d.reference})`,
   html: card(
     `<h2 style="margin:0 0 4px;font-size:20px;color:#101828">New booking request</h2>` +
@@ -141,7 +154,7 @@ const inboxEmail = (d: Details) => ({
 })
 
 const buyerEmail = (d: Details) => ({
-  from: `"Dry Tickets" <${GMAIL_USER}>`,
+  from: { name: 'Dry Tickets', address: GMAIL_USER },
   to: d.email,
   replyTo: INBOX,
   subject: `Booking request received — ${d.event} (${d.reference})`,
@@ -154,31 +167,21 @@ const buyerEmail = (d: Details) => ({
   ),
 })
 
-Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: cors })
-  if (req.method !== 'POST') return json(405, { error: 'Method not allowed' })
-
+/* ------------------------------------------------------------ handler */
+export async function POST(req: Request) {
   try {
-    if (!GMAIL_USER || !GMAIL_APP_PASSWORD) throw new Error('GMAIL_USER / GMAIL_APP_PASSWORD secrets are not set')
+    if (!GMAIL_USER || !GMAIL_APP_PASSWORD) throw new Error('GMAIL_USER / GMAIL_APP_PASSWORD are not set in Vercel')
 
     const body = await req.json().catch(() => null)
     if (!body || typeof body !== 'object') throw new UserError('Invalid request.')
-    const input = parse(body)
+    const input = parse(body as Record<string, unknown>)
 
     const ip = (req.headers.get('x-forwarded-for') ?? '').split(',')[0].trim() || 'unknown'
-    const { data: allowed, error: rlError } = await db.rpc('booking_attempt', { p_ip_hash: await sha256(SERVICE_KEY + ip) })
-    if (rlError) throw rlError
-    if (!allowed) throw new UserError('Too many booking requests. Please try again later.', 429)
+    if (!allow(ip)) throw new UserError('Too many booking requests. Please try again later.', 429)
 
-    const { data: event, error } = await db
-      .from('events')
-      .select('title,start,venue,metro,tiers')
-      .eq('slug', input.slug)
-      .maybeSingle()
-    if (error) throw error
+    const event = await findEvent(input.slug)
     if (!event) throw new UserError('This event is no longer available.', 404)
-
-    const tier = (event.tiers as { name: string; price: number; availability: string }[]).find((t) => t.name === input.tier)
+    const tier = event.tiers.find((t) => t.name === input.tier)
     if (!tier) throw new UserError('That ticket type is no longer available.', 404)
     if (tier.availability === 'SoldOut') throw new UserError('Sorry, that ticket type is sold out.', 409)
 
@@ -208,11 +211,10 @@ Deno.serve(async (req) => {
       console.error('Buyer confirmation failed', d.reference, e)
       confirmationSent = false
     }
-
     return json(200, { reference: d.reference, confirmationSent })
   } catch (e) {
     if (e instanceof UserError) return json(e.status, { error: e.message })
     console.error('Booking failed', e)
     return json(500, { error: 'Something went wrong' })
   }
-})
+}
