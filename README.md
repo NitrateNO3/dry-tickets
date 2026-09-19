@@ -70,24 +70,33 @@ Two things are derived rather than copied:
 
 ## Booking requests (email)
 
-"Get Tickets" collects the customer's details and submits a booking request. No payment
-is taken. `src/lib/booking.ts` sends two emails via [EmailJS](https://www.emailjs.com)
-straight from the browser (no backend, works on any host):
+"Get Tickets" collects the buyer's details and submits a booking request. No payment is
+taken and nothing is stored. The site calls the `booking` Supabase Edge Function
+(`supabase/functions/booking/index.ts`), which:
 
-- a copy of the request to `ticketbookingau@gmail.com`, and
-- a confirmation to the customer.
+- checks the details and re-reads the event, ticket type and price from the database, so
+  the total in the emails can't be changed from the browser;
+- emails the full request to `ticketbookingau@gmail.com` (Reply-To is the buyer), then a
+  confirmation to the buyer (Reply-To is the inbox), both sent from the Gmail account;
+- refuses more than 5 requests per hour from one IP and 150 per day overall
+  (`supabase/bookings.sql`), which keeps well inside Gmail's ~500 emails/day.
 
-Setup (one-time, ~10 minutes):
+**Setup (once):** run `npm run setup:booking` and follow the prompts. It logs in to Supabase,
+creates the rate-limit table, stores the Gmail app password as a Supabase secret, deploys
+the function, sends a test booking to the inbox, and prints the two Vercel variables.
+Before running it:
 
-1. Sign up at emailjs.com. Under **Email Services → Add New Service → Gmail**, connect
-   `ticketbookingau@gmail.com`. Note the **Service ID**.
-2. Under **Email Templates**, create two templates from `docs/emailjs/`. Each file's
-   top comment lists the Subject / To / Reply To to set. Note both **Template IDs**.
-3. Under **Account → General**, copy the **Public Key**.
-4. Copy `.env.example` to `.env` and fill in the four values. Add the same variables
-   wherever the site is built (hosting provider's environment settings), then rebuild.
+- **Gmail app password.** Sign in to `ticketbookingau@gmail.com`, turn on
+  [2-Step Verification](https://myaccount.google.com/signinoptions/twosv), then create an
+  app password at <https://myaccount.google.com/apppasswords>. That page returns 404 until
+  2-Step Verification is on.
+- **Events in the database.** The function prices bookings from the `events` table, so it
+  must not be empty: `/admin` → **Import built-in events** (see Admin panel below).
 
-The free EmailJS plan allows 200 emails/month, which is 100 bookings (2 emails each).
+Errors show under Supabase → **Edge Functions → booking → Logs**.
+
+The 4.5% booking fee is set in two places: `src/pages/EventDetail.tsx` (what the buyer
+sees) and the function (what the emails say). Change both together.
 
 ## Admin panel (Supabase)
 
@@ -144,7 +153,8 @@ enforced in the database and by response headers, not by the browser code.
 | Login abuse | Supabase Auth rate-limits sign-in per IP; the form shows a clear message on 429 and never reveals whether an email exists. |
 | Headers | `vercel.json`: CSP, HSTS, `nosniff`, `X-Frame-Options: DENY`, Referrer-Policy, Permissions-Policy, COOP. HTTP is redirected to HTTPS by Vercel. |
 | Dependencies | `npm audit` clean; Dependabot (`.github/dependabot.yml`) opens weekly update PRs. |
-| Payments | No payment is taken: "Get Tickets" sends a booking request by email (EmailJS). A real integration must use a hosted payment form (e.g. Stripe Elements) — never collect or store card numbers. |
+| Bookings | The `booking` Edge Function validates input, prices the order from the database, escapes everything placed in the emails, and rate-limits by hashed IP. The Gmail app password exists only as a Supabase secret. |
+| Payments | No payment is taken: "Get Tickets" sends a booking request by email. A real integration must use a hosted payment form (e.g. Stripe Elements) — never collect or store card numbers. |
 
 One-time setup, in order:
 

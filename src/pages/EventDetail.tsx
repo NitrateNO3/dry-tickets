@@ -10,6 +10,7 @@ import { Arrow, Cal, Check, Pin, Shield, Star, Ticket } from '../components/Icon
 import NotFound from './NotFound'
 
 // ponytail: placeholder rate (see README) — replace with the real fee schedule.
+// Keep in sync with BOOKING_FEE_RATE in supabase/functions/booking/index.ts.
 const BOOKING_FEE_RATE = 0.045
 
 const notes = [

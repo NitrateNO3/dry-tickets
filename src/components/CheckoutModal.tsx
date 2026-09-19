@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import type { EventItem, Tier } from '../data/events'
-import { BOOKINGS_INBOX, submitBooking } from '../lib/booking'
+import { BOOKINGS_INBOX, BookingError, submitBooking } from '../lib/booking'
 import { cx, fmtDate, fmtTime, money } from '../lib/format'
 import { Button, Field, Input, useDialog } from './Primitives'
 import { Check, Close } from './Icons'
@@ -32,6 +32,7 @@ export function CheckoutModal({ isOpen, onClose, event, tier, qty, subtotal, fee
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
   const [orderId, setOrderId] = useState('')
+  const [confirmationSent, setConfirmationSent] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
 
@@ -55,25 +56,26 @@ export function CheckoutModal({ isOpen, onClose, event, tier, qty, subtotal, fee
     setSubmitting(true)
     setError('')
     try {
-      const reference = await submitBooking({
+      const result = await submitBooking({
+        slug: event.slug,
+        tier: tier.name,
+        qty,
         name: name.trim(),
         email: email.trim(),
         phone: phone.trim(),
-        event_title: event.title,
-        event_date: when,
-        venue: where,
-        tickets: `${qty} × ${tier.name}`,
-        subtotal: `${money(subtotal)} AUD`,
-        fee: `${money(fee)} AUD`,
-        total: `${money(total)} AUD`,
       })
-      setOrderId(reference)
+      setOrderId(result.reference)
+      setConfirmationSent(result.confirmationSent)
       setStep('confirmed')
     } catch (err) {
       console.error('Booking submission failed', err)
-      // In dev, surface the real cause (usually missing VITE_EMAILJS_* config) instead of the generic message.
-      const detail = import.meta.env.DEV && err instanceof Error ? ` (${err.message})` : ''
-      setError(`We couldn’t submit your booking right now. Please try again, or email ${BOOKINGS_INBOX}.${detail}`)
+      if (err instanceof BookingError) {
+        setError(err.message)
+      } else {
+        // In dev, surface the real cause (usually missing Supabase config or function secrets).
+        const detail = import.meta.env.DEV && err instanceof Error ? ` (${err.message})` : ''
+        setError(`We couldn’t submit your booking right now. Please try again, or email ${BOOKINGS_INBOX}.${detail}`)
+      }
     } finally {
       setSubmitting(false)
     }
@@ -163,8 +165,17 @@ export function CheckoutModal({ isOpen, onClose, event, tier, qty, subtotal, fee
                   Booking request received
                 </h2>
                 <p className="mt-2 text-sm text-muted">
-                  A confirmation has been sent to <span className="font-medium text-ink">{email}</span>. No payment has
-                  been taken. Our team will contact you to finalise your tickets.
+                  {confirmationSent ? (
+                    <>
+                      A confirmation has been sent to <span className="font-medium text-ink">{email}</span>.
+                    </>
+                  ) : (
+                    <>
+                      We couldn’t email a confirmation to <span className="font-medium text-ink">{email}</span>, but our
+                      team has your request.
+                    </>
+                  )}{' '}
+                  No payment has been taken. Our team will contact you to finalise your tickets.
                 </p>
 
                 <div className="mt-6 rounded-lg border border-line bg-surface p-4">
