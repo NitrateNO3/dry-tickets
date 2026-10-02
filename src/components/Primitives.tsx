@@ -6,7 +6,7 @@ import { cx } from '../lib/format'
 
 /* ------------------------------------------------------------------ Meta */
 
-const SITE = 'Dry Tickets'
+const SITE = 'Mytix'
 
 function setMeta(attr: 'name' | 'property', key: string, content: string) {
   let el = document.head.querySelector<HTMLMetaElement>(`meta[${attr}="${key}"]`)

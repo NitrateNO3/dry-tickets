@@ -3,7 +3,7 @@ import { Button, Meta } from '../components/Primitives'
 export default function NotFound() {
   return (
     <div className="wrap page-top flex min-h-[70vh] flex-col items-center justify-center text-center">
-      <Meta title="Page not found" description="This page doesn't exist. Browse current events on Dry Tickets." />
+      <Meta title="Page not found" description="This page doesn't exist. Browse current events on Mytix." />
       <p className="t-display text-blue">404</p>
       <h1 className="t-h2 mt-4 text-ink">This page doesn't exist</h1>
       <p className="mt-3 max-w-md text-muted">

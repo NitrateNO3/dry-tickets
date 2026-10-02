@@ -89,7 +89,7 @@ export default function Artists() {
     <>
       <Meta
         title="Artists"
-        description={`${artists.length} artists touring Australia and New Zealand with tickets on Dry Tickets, and the names who have played our stages before.`}
+        description={`${artists.length} artists touring Australia and New Zealand with tickets on Mytix, and the names who have played our stages before.`}
       />
 
       {/* Filmstrip hero, graded to the selected category */}

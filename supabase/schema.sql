@@ -1,4 +1,4 @@
--- Dry Tickets: events table + row-level security.
+-- Mytix: events table + row-level security.
 -- Run once in the Supabase SQL editor.
 
 create table if not exists public.events (

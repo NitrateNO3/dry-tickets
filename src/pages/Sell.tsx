@@ -53,7 +53,7 @@ export default function Sell() {
         <span className="t-label text-blue">For organisers</span>
         <h1 className="t-h1 mt-3 text-ink">Ticketing, seating and door scanning for your event</h1>
         <p className="t-lede mt-4 max-w-xl">
-          Dry Tickets has run box offices for promoters in Australia since 2013 — sales, seat maps, scanning, printing
+          Mytix has run box offices for promoters in Australia since 2013 — sales, seat maps, scanning, printing
           and promotion, handled by one team.
         </p>
         <div className="mt-8 flex flex-wrap gap-3">

@@ -67,7 +67,7 @@ export default function Home() {
   return (
     <>
       <Meta
-        title="Dry Tickets"
+        title="Mytix"
         description="Official tickets for concerts, comedy, festivals and cultural events across Australia and New Zealand. Face-value pricing and instant e-tickets."
       />
       <Hero />
@@ -123,7 +123,7 @@ export default function Home() {
 
       <section className="wrap section">
         <Reveal>
-          <SectionHead eyebrow="Why Dry Tickets" title="Buying from the primary seller" />
+          <SectionHead eyebrow="Why Mytix" title="Buying from the primary seller" />
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {guarantees.map((g) => (
               <div key={g.title} className="card p-6">

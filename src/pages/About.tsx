@@ -28,7 +28,7 @@ const faqs = [
   },
   {
     q: 'Are these tickets official?',
-    a: 'Yes. Dry Tickets is a primary seller — every ticket is issued by us on behalf of the event organiser. We do not resell tickets, so you never pay above face value plus the stated booking fee.',
+    a: 'Yes. Mytix is a primary seller — every ticket is issued by us on behalf of the event organiser. We do not resell tickets, so you never pay above face value plus the stated booking fee.',
   },
 ]
 
@@ -45,14 +45,14 @@ export default function About() {
     <div className="wrap page-top">
       <Meta
         title="About"
-        description="Dry Tickets has sold tickets for live events in Australia and New Zealand since 2013. FAQs, contact details and company information."
+        description="Mytix has sold tickets for live events in Australia and New Zealand since 2013. FAQs, contact details and company information."
       />
 
       <div className="max-w-3xl">
         <span className="t-label text-blue">About</span>
         <h1 className="t-h1 mt-3 text-ink">The box office behind live events in Australia since 2013</h1>
         <p className="t-lede mt-4">
-          Dry Tickets sells tickets on behalf of promoters across Australia and New Zealand — from playback singers and
+          Mytix sells tickets on behalf of promoters across Australia and New Zealand — from playback singers and
           Punjabi headliners to qawwali nights and stand-up tours. We handle the ticketing so organisers can run the show.
         </p>
       </div>

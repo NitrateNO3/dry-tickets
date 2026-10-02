@@ -11,11 +11,11 @@ import { ChevronDown, Close, Menu, Pin, Ticket } from './Icons'
 
 export function Logo() {
   return (
-    <Link to="/" className="inline-flex shrink-0 items-center gap-2" aria-label="Dry Tickets home">
+    <Link to="/" className="inline-flex shrink-0 items-center gap-2" aria-label="Mytix home">
       <span className="grid h-8 w-8 place-items-center rounded-lg bg-blue text-white">
         <Ticket className="h-4 w-4" />
       </span>
-      <span className="text-base font-bold tracking-tight text-ink">Dry Tickets</span>
+      <span className="text-base font-bold tracking-tight text-ink">Mytix</span>
     </Link>
   )
 }

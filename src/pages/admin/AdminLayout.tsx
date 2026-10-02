@@ -110,7 +110,7 @@ export default function AdminLayout() {
 
   return (
     <div className="wrap page-top pb-24">
-      <Meta title="Admin" description="Manage shows on Dry Tickets." />
+      <Meta title="Admin" description="Manage shows on Mytix." />
       {!supabase ? (
         <NotConfigured />
       ) : session === undefined ? (

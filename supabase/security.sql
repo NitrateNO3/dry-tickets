@@ -1,4 +1,4 @@
--- Dry Tickets: security hardening. Run once in the Supabase SQL editor, after schema.sql.
+-- Mytix: security hardening. Run once in the Supabase SQL editor, after schema.sql.
 -- Safe to re-run.
 --
 -- BEFORE RUNNING: replace REPLACE_WITH_ADMIN_EMAIL (step 3) with the admin's login email.

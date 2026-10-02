@@ -1,4 +1,4 @@
-# Dry Tickets — redesign
+# Mytix — redesign
 
 A React + Vite rebuild of [drytickets.com.au](https://drytickets.com.au/), Australia
 and New Zealand's ticketing platform for Bollywood, Punjabi, Sufi and desi live events.
@@ -169,10 +169,10 @@ This is a front-end redesign. No payment is taken: checkout sends a booking requ
 email (see above). Presale signup and the organiser enquiry form show a loading state
 and a confirmation but post nowhere (search for `ponytail`).
 
-## ⚠️ Placeholder copy — not Dry Tickets' real terms
+## ⚠️ Placeholder copy — not Mytix's real terms
 
 Some copy in this demo was written to fill the design and is **not** taken from
-Dry Tickets. Do not treat any of it as the company's actual policy, and replace it
+Mytix. Do not treat any of it as the company's actual policy, and replace it
 with real figures before this goes anywhere near production:
 
 | Placeholder claim | Location |

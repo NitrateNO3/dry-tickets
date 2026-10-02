@@ -137,7 +137,7 @@ const orderRows = (d: Details) =>
   ])
 
 const inboxEmail = (d: Details) => ({
-  from: { name: 'Dry Tickets Website', address: GMAIL_USER },
+  from: { name: 'Mytix Website', address: GMAIL_USER },
   to: INBOX,
   replyTo: { name: d.name, address: d.email },
   subject: `New booking request: ${d.tickets} — ${d.event} (${d.reference})`,
@@ -154,12 +154,12 @@ const inboxEmail = (d: Details) => ({
 })
 
 const buyerEmail = (d: Details) => ({
-  from: { name: 'Dry Tickets', address: GMAIL_USER },
+  from: { name: 'Mytix', address: GMAIL_USER },
   to: d.email,
   replyTo: INBOX,
   subject: `Booking request received — ${d.event} (${d.reference})`,
   html: card(
-    `<p style="margin:0;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#2563eb">Dry Tickets</p>` +
+    `<p style="margin:0;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#2563eb">Mytix</p>` +
       `<h1 style="margin:8px 0 6px;font-size:22px;color:#101828">Thanks, ${esc(d.name)}!</h1>` +
       `<p style="margin:0 0 20px;font-size:14px;line-height:1.5;color:#475467">We've received your ticket request. No payment has been taken yet. Our team will contact you shortly to confirm your booking and arrange payment.</p>` +
       `<table style="width:100%;border-collapse:collapse;border-top:1px solid #e4e7ec;font-size:13px">${orderRows(d)}</table>` +

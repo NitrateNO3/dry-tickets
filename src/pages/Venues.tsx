@@ -97,7 +97,7 @@ export default function Venues() {
     <>
       <Meta
         title="Venues"
-        description={`${venueStats.length} venues with upcoming shows on Dry Tickets, plus the major stages we ticket across Australia.`}
+        description={`${venueStats.length} venues with upcoming shows on Mytix, plus the major stages we ticket across Australia.`}
       />
 
       <PageHero
